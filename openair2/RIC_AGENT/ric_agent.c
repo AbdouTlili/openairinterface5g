@@ -30,6 +30,7 @@
 #include "e2ap_generate_messages.h"
 #include "e2ap_handler.h"
 #include "e2sm_kpm.h"
+#include "e2sm_rmet.h"
 
 #ifdef ENABLE_RAN_SLICING
 #include "e2sm_rsm.h"

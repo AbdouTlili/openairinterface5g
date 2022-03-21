@@ -73,6 +73,8 @@
 #include "E2SM_KPM_GNB-ID-Choice-KPMv2.h"
 #include "E2SM_KPM_NRCGI-KPMv2.h"
 
+// TODO some includes here are not invoked at all, debug why
+
 extern f1ap_cudu_inst_t f1ap_cu_inst[MAX_eNB];
 extern int global_e2_node_id(ranid_t ranid, E2AP_GlobalE2node_ID_t* node_id);
 extern RAN_CONTEXT_t RC;

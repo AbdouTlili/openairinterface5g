@@ -36,9 +36,14 @@
 #include "e2sm_rmet.h"
 #include "e2ap_generate_messages.h"
 
+/*
+#include "E2SM_RMET_E2SM-RMET-RANfunction-Description.h"
+#include "E2SM_RMET_RIC-RMETNode-Item.h"
+*/
+
 #include "E2AP_Cause.h"
 #include "E2SM_KPM_E2SM-KPMv2-RANfunction-Description.h"
-#include "E2SM_RMET_RIC-RMETNode-Item.c"
+#include "E2SM_KPM_RIC-KPMNode-Item-KPMv2.h"
 #include "E2SM_KPM_Cell-Measurement-Object-Item-KPMv2.h"
 #include "E2SM_KPM_RIC-EventTriggerStyle-Item-KPMv2.h"
 #include "E2SM_KPM_RIC-ReportStyle-Item-KPMv2.h"
@@ -69,11 +74,11 @@ extern eNB_RRC_KPI_STATS    rrc_kpi_stats;
  ** inner parts of the message encoding.  generic e2ap handles the rest.
  **/
 
-static int e2sm_kpm_subscription_add(ric_agent_info_t *ric, ric_subscription_t *sub);
-static int e2sm_kpm_subscription_del(ric_agent_info_t *ric, ric_subscription_t *sub, int force,long *cause,long *cause_detail);
-static int e2sm_kpm_control(ric_agent_info_t *ric,ric_control_t *control);
+static int e2sm_rmet_subscription_add(ric_agent_info_t *ric, ric_subscription_t *sub);
+static int e2sm_rmet_subscription_del(ric_agent_info_t *ric, ric_subscription_t *sub, int force,long *cause,long *cause_detail);
+static int e2sm_rmet_control(ric_agent_info_t *ric,ric_control_t *control);
 static char *time_stamp(void);
-static int e2sm_kpm_ricInd_timer_expiry(
+static int e2sm_rmet_ricInd_timer_expiry(
         ric_agent_info_t *ric,
         long timer_id,
         ric_ran_function_id_t function_id,
@@ -82,7 +87,7 @@ static int e2sm_kpm_ricInd_timer_expiry(
         long action_id,
         uint8_t **outbuf,
         uint32_t *outlen);
-static int e2sm_kpm_gp_timer_expiry(
+static int e2sm_rmet_gp_timer_expiry(
         ric_agent_info_t *ric,
         long timer_id,
         ric_ran_function_id_t function_id,
@@ -116,20 +121,20 @@ kmp_meas_info_t e2sm_kpm_meas_info[MAX_KPM_MEAS] = {
                                         };
 
 static ric_service_model_t e2sm_kpm_model = {
-    .name = "e2sm_kpm-v2beta1",
-    /* iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) oran(53148) e2(1) version2(2) e2sm(2) e2sm-KPMMON-IEs (2) */
-    .oid = "1.3.6.1.4.1.53148.1.2.2.2",
-    .handle_subscription_add = e2sm_kpm_subscription_add,
-    .handle_subscription_del = e2sm_kpm_subscription_del,
-    .handle_control = e2sm_kpm_control,
-    .handle_ricInd_timer_expiry = e2sm_kpm_ricInd_timer_expiry,
-    .handle_gp_timer_expiry = e2sm_kpm_gp_timer_expiry
+    .name = "e2sm_rmet-v1beta1",
+// iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) oran(53148) e2(1) version2(2) e2sm(2) e2sm-RMET-IEs (99)}
+    .oid = "1.3.6.1.4.1.53148.1.2.2.99"
+    .handle_subscription_add = e2sm_rmet_subscription_add,
+    .handle_subscription_del = e2sm_rmet_subscription_del,
+    .handle_control = e2sm_rmet_control,
+    .handle_ricInd_timer_expiry = e2sm_rmet_ricInd_timer_expiry,
+    .handle_gp_timer_expiry = e2sm_rmet_gp_timer_expiry
 };
 
 /**
  * Initializes KPM state and registers KPM e2ap_ran_function_id_t number(s).
  */
-int e2sm_kpm_init(void)
+int e2sm_rmet_init(void)
 {
     uint16_t i;
     ric_ran_function_t *func;
@@ -318,7 +323,7 @@ int e2sm_kpm_init(void)
     return ric_agent_register_ran_function(func);
 }
 
-static int e2sm_kpm_subscription_add(ric_agent_info_t *ric, ric_subscription_t *sub)
+static int e2sm_rmet_subscription_add(ric_agent_info_t *ric, ric_subscription_t *sub)
 {
   /* XXX: process E2SM content. */
   if (LIST_EMPTY(&ric->subscription_list)) {
@@ -330,7 +335,7 @@ static int e2sm_kpm_subscription_add(ric_agent_info_t *ric, ric_subscription_t *
   return 0;
 }
 
-static int e2sm_kpm_subscription_del(ric_agent_info_t *ric, ric_subscription_t *sub, int force,long *cause,long *cause_detail)
+static int e2sm_rmet_subscription_del(ric_agent_info_t *ric, ric_subscription_t *sub, int force,long *cause,long *cause_detail)
 {
     timer_remove(ric->e2sm_kpm_timer_id);
     LIST_REMOVE(sub, subscriptions);
@@ -338,8 +343,9 @@ static int e2sm_kpm_subscription_del(ric_agent_info_t *ric, ric_subscription_t *
     return 0;
 }
 
-static int e2sm_kpm_control(ric_agent_info_t *ric,ric_control_t *control)
+static int e2sm_rmet_control(ric_agent_info_t *ric,ric_control_t *control)
 {
+    // no control service for this RAN function/Service Model
     return 0;
 }
 
@@ -356,7 +362,7 @@ static char *time_stamp(void)
     return timestamp;
 }
 
-static int e2sm_kpm_ricInd_timer_expiry(
+static int e2sm_rmet_ricInd_timer_expiry(
         ric_agent_info_t *ric,
         long timer_id,
         ric_ran_function_id_t function_id,
@@ -444,7 +450,7 @@ static int e2sm_kpm_ricInd_timer_expiry(
 
 struct timeval g_captureStartTime;
 
-static int e2sm_kpm_gp_timer_expiry(
+static int e2sm_rmet_gp_timer_expiry(
         ric_agent_info_t *ric,
         long timer_id,
         ric_ran_function_id_t function_id,

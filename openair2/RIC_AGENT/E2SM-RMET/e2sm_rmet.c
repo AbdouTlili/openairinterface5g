@@ -46,18 +46,20 @@
 #include "E2SM_RMET_E2SM-RMET-IndicationHeader.h"
 #include "E2SM_RMET_GlobalRMETnode-ID.h"
 #include "E2SM_RMET_E2SM-RMET-ActionDefinition.h"
+#include "E2SM_RMET_E2SM-RMET-IndicationMessage.h"
+#include "E2SM_RMET_SubscriptionID.h"
 
 // //done migrating 
-#include "E2SM_KPM_E2SM-KPMv2-RANfunction-Description.h"
+//#include "E2SM_KPM_E2SM-KPMv2-RANfunction-Description.h"
 // #include "E2SM_KPM_RIC-KPMNode-Item-KPMv2.h"
 // #include "E2SM_KPM_Cell-Measurement-Object-Item-KPMv2.h"
 // #include "E2SM_KPM_RIC-EventTriggerStyle-Item-KPMv2.h"
 // #include "E2SM_KPM_RIC-ReportStyle-Item-KPMv2.h"
-#include "E2SM_KPM_E2SM-KPMv2-IndicationHeader.h"
+//#include "E2SM_KPM_E2SM-KPMv2-IndicationHeader.h"
 // #include "E2SM_KPM_GlobalKPMnode-ID-KPMv2.h"
 
 // #include "E2SM_KPM_E2SM-KPMv2-ActionDefinition.h"
-
+// #include "E2SM_KPM_E2SM-KPMv2-IndicationMessage.h"
 
 
 // Not migrated yet
@@ -67,7 +69,7 @@
 
 #include "E2SM_KPM_MeasurementRecord-KPMv2.h"
 #include "E2SM_KPM_MeasurementRecordItem-KPMv2.h"
-#include "E2SM_KPM_E2SM-KPMv2-IndicationMessage.h"
+
 #include "E2SM_KPM_MeasurementDataItem-KPMv2.h"
 // #include "E2SM_KPM_SNSSAI-KPMv2.h"
 // #include "E2SM_KPM_GNB-ID-Choice-KPMv2.h"
@@ -109,9 +111,9 @@ static int e2sm_rmet_gp_timer_expiry(
         long action_id,
         uint8_t **outbuf,
         uint32_t *outlen);
-static E2SM_KPM_E2SM_KPMv2_IndicationMessage_t* encode_kpm_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs);
+static E2SM_RMET_E2SM_RMET_IndicationMessage_t* encode_kpm_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs);
 //static void generate_e2apv1_indication_request_parameterized(E2AP_E2AP_PDU_t *e2ap_pdu, long requestorId, long instanceId, long ranFunctionId, long actionId, long seqNum, uint8_t *ind_header_buf, int header_length, uint8_t *ind_message_buf, int message_length);
-static void encode_e2sm_kpm_indication_header(ranid_t ranid, E2SM_RMET_E2SM_RMET_IndicationHeader_t *ihead);
+static void encode_e2sm_rmet_indication_header(ranid_t ranid, E2SM_RMET_E2SM_RMET_IndicationHeader_t *ihead);
 
 //static int e2ap_asn1c_encode_pdu(E2AP_E2AP_PDU_t* pdu, unsigned char **buffer);
 
@@ -120,10 +122,10 @@ static void encode_e2sm_kpm_indication_header(ranid_t ranid, E2SM_RMET_E2SM_RMET
 uint8_t g_indMsgMeasInfoCnt = 0;
 uint8_t g_granularityIndx = 0;
 bool action_def_missing = FALSE;
-E2SM_KPM_MeasurementInfoItem_KPMv2_t *g_indMsgMeasInfoItemArr[MAX_KPM_MEAS];
-E2SM_KPM_MeasurementRecordItem_KPMv2_t *g_indMsgMeasRecItemArr[MAX_GRANULARITY_INDEX][MAX_KPM_MEAS];
-E2SM_KPM_GranularityPeriod_KPMv2_t     *g_granulPeriod;
-E2SM_KPM_SubscriptionID_KPMv2_t    g_subscriptionID;
+E2SM_KPM_MeasurementInfoItem_KPMv2_t *g_indMsgMeasInfoItemArr[MAX_KPM_MEAS];/**/
+E2SM_KPM_MeasurementRecordItem_KPMv2_t *g_indMsgMeasRecItemArr[MAX_GRANULARITY_INDEX][MAX_KPM_MEAS];/**/
+E2SM_KPM_GranularityPeriod_KPMv2_t     *g_granulPeriod;/**/
+E2SM_RMET_SubscriptionID_t    g_subscriptionID;
 
 kmp_meas_info_t e2sm_kpm_meas_info[MAX_KPM_MEAS] = {
                                             {1, "RRC.ConnEstabAtt.sum", 0, FALSE},
@@ -386,7 +388,7 @@ static int e2sm_rmet_ricInd_timer_expiry(
         uint32_t *outlen)
 {
 
-    E2SM_KPM_E2SM_KPMv2_IndicationMessage_t* indicationmessage;
+    E2SM_RMET_E2SM_RMET_IndicationMessage_t* indicationmessage;
     ric_subscription_t *rs;
 
     DevAssert(timer_id == ric->e2sm_kpm_timer_id);
@@ -432,7 +434,7 @@ static int e2sm_rmet_ricInd_timer_expiry(
     E2SM_RMET_E2SM_RMET_IndicationHeader_t* ind_header_style1 =
         (E2SM_RMET_E2SM_RMET_IndicationHeader_t*)calloc(1,sizeof(E2SM_RMET_E2SM_RMET_IndicationHeader_t));
 
-    encode_e2sm_kpm_indication_header(ric->ranid, ind_header_style1);
+    encode_e2sm_rmet_indication_header(ric->ranid, ind_header_style1);
 
     uint8_t e2sm_header_buf_style1[8192];
     size_t e2sm_header_buf_size_style1 = 8192;
@@ -712,7 +714,7 @@ e2sm_kpm_decode_and_handle_action_def(uint8_t *def_buf,
     return 0;
 }
 
-static E2SM_KPM_E2SM_KPMv2_IndicationMessage_t*
+static E2SM_RMET_E2SM_RMET_IndicationMessage_t*
 encode_kpm_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
 {
     int ret;
@@ -810,8 +812,8 @@ encode_kpm_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
     /*
      * IndicationMessage -> IndicationMessage_Format1
      */
-    E2SM_KPM_E2SM_KPMv2_IndicationMessage_t* indicationmessage = 
-                                (E2SM_KPM_E2SM_KPMv2_IndicationMessage_t*)calloc(1, sizeof(E2SM_KPM_E2SM_KPMv2_IndicationMessage_t));
+    E2SM_RMET_E2SM_RMET_IndicationMessage_t* indicationmessage = 
+                                (E2SM_RMET_E2SM_RMET_IndicationMessage_t*)calloc(1, sizeof(E2SM_RMET_E2SM_RMET_IndicationMessage_t));
     indicationmessage->indicationMessage_formats.present = 
                                     E2SM_KPM_E2SM_KPMv2_IndicationMessage__indicationMessage_formats_PR_indicationMessage_Format1;
     indicationmessage->indicationMessage_formats.choice.indicationMessage_Format1 = *format;
@@ -832,7 +834,7 @@ unsigned int tv_to_ntp(struct timeval tv)
     return (((tv_ntp << 32) | tv_usecs) & 0xFFFFFFFF);//just returning 32bits
 }
 
-void encode_e2sm_kpm_indication_header(ranid_t ranid, E2SM_RMET_E2SM_RMET_IndicationHeader_t *ihead) 
+void encode_e2sm_rmet_indication_header(ranid_t ranid, E2SM_RMET_E2SM_RMET_IndicationHeader_t *ihead) 
 {
     e2node_type_t node_type;
     ihead->indicationHeader_formats.present = E2SM_RMET_E2SM_RMET_IndicationHeader__indicationHeader_formats_PR_indicationHeader_Format1;

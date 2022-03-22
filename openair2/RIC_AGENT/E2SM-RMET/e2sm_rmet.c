@@ -48,6 +48,7 @@
 #include "E2SM_RMET_E2SM-RMET-ActionDefinition.h"
 #include "E2SM_RMET_E2SM-RMET-IndicationMessage.h"
 #include "E2SM_RMET_SubscriptionID.h"
+#include "E2SM_RMET_MeasurementInfoItem.h"
 
 // //done migrating 
 //#include "E2SM_KPM_E2SM-KPMv2-RANfunction-Description.h"
@@ -113,7 +114,7 @@ static int e2sm_rmet_gp_timer_expiry(
         uint32_t *outlen);
 static E2SM_RMET_E2SM_RMET_IndicationMessage_t* encode_kpm_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs);
 //static void generate_e2apv1_indication_request_parameterized(E2AP_E2AP_PDU_t *e2ap_pdu, long requestorId, long instanceId, long ranFunctionId, long actionId, long seqNum, uint8_t *ind_header_buf, int header_length, uint8_t *ind_message_buf, int message_length);
-static void encode_e2sm_rmet_indication_header(ranid_t ranid, E2SM_RMET_E2SM_RMET_IndicationHeader_t *ihead);
+static void encode_e2sm_kpm_indication_header(ranid_t ranid, E2SM_RMET_E2SM_RMET_IndicationHeader_t *ihead);
 
 //static int e2ap_asn1c_encode_pdu(E2AP_E2AP_PDU_t* pdu, unsigned char **buffer);
 
@@ -127,12 +128,12 @@ E2SM_KPM_MeasurementRecordItem_KPMv2_t *g_indMsgMeasRecItemArr[MAX_GRANULARITY_I
 E2SM_KPM_GranularityPeriod_KPMv2_t     *g_granulPeriod;/**/
 E2SM_RMET_SubscriptionID_t    g_subscriptionID;
 
-kmp_meas_info_t e2sm_kpm_meas_info[MAX_KPM_MEAS] = {
-                                            {1, "RRC.ConnEstabAtt.sum", 0, FALSE},
-                                            {2, "RRC.ConnEstabSucc.sum", 0, FALSE},
-                                            {3, "RRC.ConnReEstabAtt.sum", 0, FALSE},
-                                            {4, "RRC.ConnMean", 0, FALSE},
-                                            {5, "RRC.ConnMax", 0, FALSE}
+rmet_meas_info_t e2sm_rmet_meas_info[MAX_KPM_MEAS] = {
+                                            {1, "phr", 0, FALSE},
+                                            {2, "snr", 0, FALSE},
+                                            {3, "bler", 0, FALSE},
+                                            {4, "d2kUL", 0, FALSE},
+                                            {5, "d2kDL", 0, FALSE}
                                         };
 
 static ric_service_model_t e2sm_rmet_model = {
@@ -249,56 +250,56 @@ int e2sm_rmet_init(void)
     ric_report_style_item->ric_ActionFormat_Type = 6; //pending 
     
       meas_action_item1 = (E2SM_KPM_MeasurementInfo_Action_Item_KPMv2_t *)calloc(1, sizeof(*meas_action_item1));
-    meas_action_item1->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[0].meas_type_name);
-    meas_action_item1->measName.size = strlen(e2sm_kpm_meas_info[0].meas_type_name);
+    meas_action_item1->measName.buf = (uint8_t *)strdup(e2sm_rmet_meas_info[0].meas_type_name);
+    meas_action_item1->measName.size = strlen(e2sm_rmet_meas_info[0].meas_type_name);
 
     E2SM_KPM_MeasurementTypeID_KPMv2_t *measID1;
     measID1 = (E2SM_KPM_MeasurementTypeID_KPMv2_t *)calloc(1, sizeof(*measID1));
-    *measID1 = e2sm_kpm_meas_info[0].meas_type_id;
+    *measID1 = e2sm_rmet_meas_info[0].meas_type_id;
 
     meas_action_item1->measID = measID1;
     ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item1);
     
     meas_action_item2 = (E2SM_KPM_MeasurementInfo_Action_Item_KPMv2_t *)calloc(1, sizeof(*meas_action_item2));
-    meas_action_item2->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[1].meas_type_name); //(uint8_t *)strdup("RRC.ConnEstabSucc.sum");
-    meas_action_item2->measName.size = strlen(e2sm_kpm_meas_info[1].meas_type_name);
+    meas_action_item2->measName.buf = (uint8_t *)strdup(e2sm_rmet_meas_info[1].meas_type_name); //(uint8_t *)strdup("RRC.ConnEstabSucc.sum");
+    meas_action_item2->measName.size = strlen(e2sm_rmet_meas_info[1].meas_type_name);
 
     E2SM_KPM_MeasurementTypeID_KPMv2_t *measID2;
     measID2 = (E2SM_KPM_MeasurementTypeID_KPMv2_t *)calloc(1, sizeof(*measID2));
-    *measID2 = e2sm_kpm_meas_info[1].meas_type_id;
+    *measID2 = e2sm_rmet_meas_info[1].meas_type_id;
 
     meas_action_item2->measID = measID2;
     ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item2);
     
     meas_action_item3 = (E2SM_KPM_MeasurementInfo_Action_Item_KPMv2_t *)calloc(1, sizeof(*meas_action_item3));
-    meas_action_item3->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[2].meas_type_name);
-    meas_action_item3->measName.size = strlen(e2sm_kpm_meas_info[2].meas_type_name);
+    meas_action_item3->measName.buf = (uint8_t *)strdup(e2sm_rmet_meas_info[2].meas_type_name);
+    meas_action_item3->measName.size = strlen(e2sm_rmet_meas_info[2].meas_type_name);
 
     E2SM_KPM_MeasurementTypeID_KPMv2_t *measID3;
     measID3 = (E2SM_KPM_MeasurementTypeID_KPMv2_t *)calloc(1, sizeof(*measID3));
-    *measID3 = e2sm_kpm_meas_info[2].meas_type_id;
+    *measID3 = e2sm_rmet_meas_info[2].meas_type_id;
 
     meas_action_item3->measID = measID3;
     ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item3);
 
     meas_action_item4 = (E2SM_KPM_MeasurementInfo_Action_Item_KPMv2_t *)calloc(1, sizeof(*meas_action_item4));
-    meas_action_item4->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[3].meas_type_name);
-    meas_action_item4->measName.size = strlen(e2sm_kpm_meas_info[3].meas_type_name);
+    meas_action_item4->measName.buf = (uint8_t *)strdup(e2sm_rmet_meas_info[3].meas_type_name);
+    meas_action_item4->measName.size = strlen(e2sm_rmet_meas_info[3].meas_type_name);
 
     E2SM_KPM_MeasurementTypeID_KPMv2_t *measID4;
     measID4 = (E2SM_KPM_MeasurementTypeID_KPMv2_t *)calloc(1, sizeof(*measID4));
-    *measID4 = e2sm_kpm_meas_info[3].meas_type_id;
+    *measID4 = e2sm_rmet_meas_info[3].meas_type_id;
 
     meas_action_item4->measID = measID4;
     ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item4);
 
     meas_action_item5 = (E2SM_KPM_MeasurementInfo_Action_Item_KPMv2_t *)calloc(1, sizeof(*meas_action_item5));
-    meas_action_item5->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[4].meas_type_name);
-    meas_action_item5->measName.size = strlen(e2sm_kpm_meas_info[4].meas_type_name);
+    meas_action_item5->measName.buf = (uint8_t *)strdup(e2sm_rmet_meas_info[4].meas_type_name);
+    meas_action_item5->measName.size = strlen(e2sm_rmet_meas_info[4].meas_type_name);
 
     E2SM_KPM_MeasurementTypeID_KPMv2_t *measID5;
     measID5 = (E2SM_KPM_MeasurementTypeID_KPMv2_t *)calloc(1, sizeof(*measID5));
-    *measID5 = e2sm_kpm_meas_info[4].meas_type_id;
+    *measID5 = e2sm_rmet_meas_info[4].meas_type_id;
 
     meas_action_item5->measID = measID5;
     ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item5);
@@ -434,7 +435,7 @@ static int e2sm_rmet_ricInd_timer_expiry(
     E2SM_RMET_E2SM_RMET_IndicationHeader_t* ind_header_style1 =
         (E2SM_RMET_E2SM_RMET_IndicationHeader_t*)calloc(1,sizeof(E2SM_RMET_E2SM_RMET_IndicationHeader_t));
 
-    encode_e2sm_rmet_indication_header(ric->ranid, ind_header_style1);
+    encode_e2sm_kpm_indication_header(ric->ranid, ind_header_style1);
 
     uint8_t e2sm_header_buf_style1[8192];
     size_t e2sm_header_buf_size_style1 = 8192;
@@ -492,13 +493,13 @@ static int e2sm_rmet_gp_timer_expiry(
 
     for (i = 0; i < MAX_KPM_MEAS; i++)
     {
-        if (e2sm_kpm_meas_info[i].subscription_status == TRUE)
+        if (e2sm_rmet_meas_info[i].subscription_status == TRUE)
         {
             g_indMsgMeasRecItemArr[g_granularityIndx][j] = 
                             (E2SM_KPM_MeasurementRecordItem_KPMv2_t *)calloc(1,sizeof(E2SM_KPM_MeasurementRecordItem_KPMv2_t));
             g_indMsgMeasRecItemArr[g_granularityIndx][j]->present = E2SM_KPM_MeasurementRecordItem_KPMv2_PR_integer;
 
-            switch(e2sm_kpm_meas_info[i].meas_type_id)
+            switch(e2sm_rmet_meas_info[i].meas_type_id)
             {
                 case 1:/*RRC.ConnEstabAtt.sum*/
                     g_indMsgMeasRecItemArr[g_granularityIndx][j]->choice.integer = 
@@ -541,7 +542,7 @@ getMeasIdFromMeasName(uint8_t *measName)
 
     for(i=0; i < MAX_KPM_MEAS; i++)
     {
-        ret = strcmp(e2sm_kpm_meas_info[i].meas_type_name, (char *)measName);
+        ret = strcmp(e2sm_rmet_meas_info[i].meas_type_name, (char *)measName);
         if (ret ==0)
         {
             RIC_AGENT_INFO("[%s] found, MeasId:%d\n",measName, (i+1));
@@ -578,7 +579,7 @@ e2sm_kpm_decode_and_handle_action_def(uint8_t *def_buf,
     /*Reset Subscriptions */
     for (i = 0; i < MAX_KPM_MEAS; i++)
     {
-        e2sm_kpm_meas_info[i].subscription_status = FALSE;
+        e2sm_rmet_meas_info[i].subscription_status = FALSE;
     }
     g_indMsgMeasInfoCnt = 0; // resetting
    
@@ -594,10 +595,10 @@ e2sm_kpm_decode_and_handle_action_def(uint8_t *def_buf,
                                      (E2SM_KPM_MeasurementInfoItem_KPMv2_t *)calloc(1,sizeof(E2SM_KPM_MeasurementInfoItem_KPMv2_t));
             g_indMsgMeasInfoItemArr[g_indMsgMeasInfoCnt]->measType.present = E2SM_KPM_MeasurementType_KPMv2_PR_measName;
             g_indMsgMeasInfoItemArr[g_indMsgMeasInfoCnt]->measType.choice.measName.buf =
-                                                     (uint8_t *)strdup(e2sm_kpm_meas_info[i].meas_type_name);
+                                                     (uint8_t *)strdup(e2sm_rmet_meas_info[i].meas_type_name);
             g_indMsgMeasInfoItemArr[g_indMsgMeasInfoCnt]->measType.choice.measName.size =
-                                                                strlen(e2sm_kpm_meas_info[i].meas_type_name);
-            e2sm_kpm_meas_info[i].subscription_status = TRUE;
+                                                                strlen(e2sm_rmet_meas_info[i].meas_type_name);
+            e2sm_rmet_meas_info[i].subscription_status = TRUE;
             g_indMsgMeasInfoCnt++;
         }
         *g_granulPeriod = 10; //Hack
@@ -656,17 +657,17 @@ e2sm_kpm_decode_and_handle_action_def(uint8_t *def_buf,
 
                 if ( ( (localMeasID > 0) &&
                        (localMeasID < (MAX_KPM_MEAS+1) ) ) &&  /*Expecting KPM MeasID to be within limits */
-                     (e2sm_kpm_meas_info[localMeasID-1].subscription_status == FALSE) ) /*Avoid subscribing duplicate */
+                     (e2sm_rmet_meas_info[localMeasID-1].subscription_status == FALSE) ) /*Avoid subscribing duplicate */
                 {
                     /* Set the Subscription Status */
                     g_indMsgMeasInfoItemArr[g_indMsgMeasInfoCnt] =
                                                  (E2SM_KPM_MeasurementInfoItem_KPMv2_t *)calloc(1,sizeof(E2SM_KPM_MeasurementInfoItem_KPMv2_t));
                     g_indMsgMeasInfoItemArr[g_indMsgMeasInfoCnt]->measType.present = E2SM_KPM_MeasurementType_KPMv2_PR_measName;
                     g_indMsgMeasInfoItemArr[g_indMsgMeasInfoCnt]->measType.choice.measName.buf =
-                                                     (uint8_t *)strdup(e2sm_kpm_meas_info[localMeasID-1].meas_type_name);
+                                                     (uint8_t *)strdup(e2sm_rmet_meas_info[localMeasID-1].meas_type_name);
                     g_indMsgMeasInfoItemArr[g_indMsgMeasInfoCnt]->measType.choice.measName.size =
-                                                                strlen(e2sm_kpm_meas_info[localMeasID-1].meas_type_name);
-                    e2sm_kpm_meas_info[localMeasID-1].subscription_status = TRUE;
+                                                                strlen(e2sm_rmet_meas_info[localMeasID-1].meas_type_name);
+                    e2sm_rmet_meas_info[localMeasID-1].subscription_status = TRUE;
                     g_indMsgMeasInfoCnt++;
                 }
                 else
@@ -834,7 +835,7 @@ unsigned int tv_to_ntp(struct timeval tv)
     return (((tv_ntp << 32) | tv_usecs) & 0xFFFFFFFF);//just returning 32bits
 }
 
-void encode_e2sm_rmet_indication_header(ranid_t ranid, E2SM_RMET_E2SM_RMET_IndicationHeader_t *ihead) 
+void encode_e2sm_kpm_indication_header(ranid_t ranid, E2SM_RMET_E2SM_RMET_IndicationHeader_t *ihead) 
 {
     e2node_type_t node_type;
     ihead->indicationHeader_formats.present = E2SM_RMET_E2SM_RMET_IndicationHeader__indicationHeader_formats_PR_indicationHeader_Format1;

@@ -154,6 +154,16 @@ typedef struct {
     bool     subscription_status;
 } kmp_meas_info_t;
 
+/** rmet measurment struct */
+
+typedef struct {
+    long     meas_type_id;
+    char     *meas_type_name;
+    uint16_t meas_data;
+    bool     subscription_status;
+} rmet_meas_info_t;
+
+
 typedef struct {
     char *name;
     char *oid;

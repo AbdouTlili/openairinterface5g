@@ -456,7 +456,7 @@ void *ric_agent_task(void *args)
 
     // calling e2sm_remet init function 
 
-    e2sm_remet_init();
+    e2sm_rmet_init();
 
 #ifdef ENABLE_RAN_SLICING
     e2sm_rsm_init(e2_conf[0]->e2node_type);

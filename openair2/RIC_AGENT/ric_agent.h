@@ -112,6 +112,9 @@ typedef struct {
     uint32_t ric_id;
 
     long e2sm_kpm_timer_id;
+    //#MET
+    long e2sm_met_timer_id;
+
     long gran_prd_timer_id;
     long ric_connect_timer_id;
 

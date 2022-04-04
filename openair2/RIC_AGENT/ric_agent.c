@@ -30,6 +30,8 @@
 #include "e2ap_generate_messages.h"
 #include "e2ap_handler.h"
 #include "e2sm_kpm.h"
+#include "e2sm_met.h"
+
 
 #ifdef ENABLE_RAN_SLICING
 #include "e2sm_rsm.h"
@@ -294,7 +296,12 @@ static int ric_agent_handle_sctp_new_association_resp(
         if (ric_agent_info[instance] != NULL) {
             RIC_AGENT_INFO("resetting RIC connection %u\n", instance);
             timer_remove(ric_agent_info[instance]->e2sm_kpm_timer_id);
+            //#MET
+            timer_remove(ric_agent_info[instance]->e2sm_met_timer_id);
             ric_agent_info[instance]->e2sm_kpm_timer_id = 0;
+            //#MET
+            ric_agent_info[instance]->e2sm_met_timer_id = 0;
+
             ric_agent_info[instance]->assoc_id = -1;
             timer_setup(5, 0, TASK_RIC_AGENT, instance, TIMER_PERIODIC, NULL, &ric_agent_info[instance]->ric_connect_timer_id);
         } else {
@@ -395,7 +402,7 @@ static void ric_agent_handle_timer_expiry(
     int ret = 0;
 
     ric = ric_agent_info[instance];
-
+    //TODO look into this
     if (timer_id == ric->ric_connect_timer_id) {
         ric_agent_connect(instance);
     } else if (timer_id == ric->e2sm_kpm_timer_id) {
@@ -452,6 +459,8 @@ void *ric_agent_task(void *args)
     RIC_AGENT_INFO("starting CU E2 agent task\n");
 
     e2sm_kpm_init();
+    //FIXME
+
 
 #ifdef ENABLE_RAN_SLICING
     e2sm_rsm_init(e2_conf[0]->e2node_type);

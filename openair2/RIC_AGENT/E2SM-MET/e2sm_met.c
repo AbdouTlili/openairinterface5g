@@ -10,6 +10,20 @@
 #include "e2sm_kpm.h"
 #include "e2ap_generate_messages.h"
 
+//HERE
+#include "E2SM_MET_SubscriptionID.h"
+#include "E2SM_MET_MeasurementData.h"
+#include "E2SM_MET_MeasurementRecord.h"
+#include "E2SM_MET_MeasurementRecordItem.h"
+#include "E2SM_MET_GranularityPeriod.h"
+#include "E2SM_MET_E2SM-MET-IndicationMessage.h"
+#include "E2SM_MET_E2SM-MET-IndicationHeader.h"
+#include "E2SM_MET_E2SM-MET-IndicationHeader-Format1.h"
+#include "E2SM_MET_MeasurementInfoList.h"
+#include "E2SM_MET_MeasurementInfoItem.h"
+#include "E2SM_MET_E2SM-MET-IndicationMessage-Format1.h"
+#include "E2SM_MET_GlobalMETnode-ID.h"
+
 #include "E2AP_Cause.h"
 
 
@@ -31,7 +45,7 @@ extern eNB_RRC_KPI_STATS    rrc_kpi_stats;
 #define MAX_UE 5
 #define MAX_MET_MEAS    5
 
-E2SM_KPM_MeasurementRecordItem_KPMv2_t *g_indMsgMeasRecItemArr[MAX_KPM_MEAS];
+E2SM_MET_MeasurementRecordItem_t *g_indMsgMeasRecItemArr[MAX_KPM_MEAS];
 
 
 static int e2sm_met_subscription_add(ric_agent_info_t *ric, ric_subscription_t *sub);
@@ -50,6 +64,7 @@ static int e2sm_met_ricInd_timer_expiry(
 
 //TODONOW set the subID and granularity period somewhere 
 E2SM_MET_SubscriptionID_t    g_subscriptionID;
+
 E2SM_MET_GranularityPeriod_t     *g_granulPeriod;
 
 
@@ -105,7 +120,6 @@ static int e2sm_met_ricInd_timer_expiry(
         uint8_t **outbuf,
         uint32_t *outlen)
 {
-
     E2SM_MET_E2SM_MET_IndicationMessage_t* indicationmessage;
     ric_subscription_t *rs;
 
@@ -153,7 +167,7 @@ static int e2sm_met_ricInd_timer_expiry(
     E2SM_MET_E2SM_MET_IndicationHeader_t* ind_header_style1 =
         (E2SM_MET_E2SM_MET_IndicationHeader_t*)calloc(1,sizeof(E2SM_MET_E2SM_MET_IndicationHeader_t));
     //REVIEW update the name and the params if necessar
-    encode_e2sm_kpm_indication_header(ric->ranid, ind_header_style1);
+    encode_e2sm_met_indication_header(ric->ranid, ind_header_style1);
 
     uint8_t e2sm_header_buf_style1[8192];
     size_t e2sm_header_buf_size_style1 = 8192;
@@ -184,13 +198,14 @@ static int e2sm_met_ricInd_timer_expiry(
 
 
 // TODO this is a requirements (aka used by handle time expircy function) so it is imported here to be later modified to meet MET SM defs 
-// REVIEW this contains the dummy data, it is not real one + it is duplicated aka RecordItems are creaated once and duplicated in all Records in measData
+// REVIEW this contains the dummy data, it is not real ones + it is duplicated aka RecordItems are creaated once and duplicated in all Records in measData
     // the thing that made this the the use of a table aka array instead of a matrix for troring the measurments : g_indMsgMeasRecItemArr
 static E2SM_MET_E2SM_MET_IndicationMessage_t*
 encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
 {
     int ret;
     uint8_t i,k;
+
     E2SM_MET_MeasurementData_t* meas_data
     E2SM_MET_MeasurementRecord_t* meas_rec[MAX_UE];
     E2SM_MET_MeasurementRecordItem_t* meas_data_item[MAX_RECORD_ITEM];
@@ -267,6 +282,7 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
    /*
     * measInfoList
     */
+   
     E2SM_MET_MeasurementInfoList_t* meas_info_list = (E2SM_MET_MeasurementInfoList_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoList_t));
     for(i=0; i < MAX_RECORD_ITEM; i++)
     {
@@ -281,6 +297,8 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
      * IndicationMessage_Format1 -> measInfoList
      * IndicationMessage_Format1 -> measData
      */
+
+    
     E2SM_MET_E2SM_MET_IndicationMessage_Format1_t* format = 
                         (E2SM_MET_E2SM_MET_IndicationMessage_Format1_t*)calloc(1, sizeof(E2SM_MET_E2SM_MET_IndicationMessage_Format1_t));
     ASN_STRUCT_RESET(asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage_Format1, format);
@@ -294,6 +312,8 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
     /*
      * IndicationMessage -> IndicationMessage_Format1
      */
+
+    
     E2SM_MET_E2SM_MET_IndicationMessage_t* indicationmessage = 
                                 (E2SM_MET_E2SM_MET_IndicationMessage_t*)calloc(1, sizeof(E2SM_MET_E2SM_MET_IndicationMessage_t));
     indicationmessage->indicationMessage_formats.present = 
@@ -307,33 +327,19 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
 
 
 //TODO  this is also a requirement of the function e2sm_kpm_ricInd_timer_expiry imported here to be set to hundle MET SM
-void encode_e2sm_kpm_indication_header(ranid_t ranid, E2SM_KPM_E2SM_KPMv2_IndicationHeader_t *ihead) 
+//NOW 
+void encode_e2sm_met_indication_header(ranid_t ranid, E2SM_MET_E2SM_MET_IndicationHeader_t *ihead) 
 {
     e2node_type_t node_type;
-    ihead->indicationHeader_formats.present = E2SM_KPM_E2SM_KPMv2_IndicationHeader__indicationHeader_formats_PR_indicationHeader_Format1;
+    ihead->indicationHeader_formats.present = E2SM_MET_E2SM_MET_IndicationHeader__indicationHeader_formats_PR_indicationHeader_Format1;
+//HERE 
+    E2SM_MET_E2SM_MET_IndicationHeader_Format1_t* ind_header = &ihead->indicationHeader_formats.choice.indicationHeader_Format1;
 
-    E2SM_KPM_E2SM_KPMv2_IndicationHeader_Format1_t* ind_header = &ihead->indicationHeader_formats.choice.indicationHeader_Format1;
+    /* MET Node ID */
+    ind_header->metNodeID = (E2SM_MET_GlobalMETnode_ID_t *)calloc(1,sizeof(E2SM_MET_GlobalMETnode_ID_t));
+    //REVIEW is the init of an int done correctly
+    *(ind_header->metNodeID) = 10; //REVIEW  // hack 
 
-    /* KPM Node ID */
-    ind_header->kpmNodeID = (E2SM_KPM_GlobalKPMnode_ID_KPMv2_t *)calloc(1,sizeof(E2SM_KPM_GlobalKPMnode_ID_KPMv2_t));
-    ind_header->kpmNodeID->present = E2SM_KPM_GlobalKPMnode_ID_KPMv2_PR_eNB;
-
-    node_type = e2_conf[ranid]->e2node_type;
-    
-    if (node_type == E2NODE_TYPE_ENB_CU) 
-    {
-        MCC_MNC_TO_PLMNID(
-                e2_conf[ranid]->mcc,
-                e2_conf[ranid]->mnc,
-                e2_conf[ranid]->mnc_digit_length,
-                &ind_header->kpmNodeID->choice.eNB.global_eNB_ID.pLMN_Identity);
-    
-        ind_header->kpmNodeID->choice.eNB.global_eNB_ID.eNB_ID.present = E2SM_KPM_ENB_ID_KPMv2_PR_macro_eNB_ID; 
-    
-        MACRO_ENB_ID_TO_BIT_STRING(
-                e2_conf[ranid]->cell_identity,
-                &ind_header->kpmNodeID->choice.eNB.global_eNB_ID.eNB_ID.choice.macro_eNB_ID);
-    }
 
     /* Collect Start Time Stamp */
     /* Encoded in the same format as the first four octets of the 64-bit timestamp format as defined in section 6 of IETF RFC 5905 */
@@ -342,3 +348,5 @@ void encode_e2sm_kpm_indication_header(ranid_t ranid, E2SM_KPM_E2SM_KPMv2_Indica
     *((uint32_t *)(ind_header->colletStartTime.buf)) = htonl((uint32_t)time(NULL));
     //xer_fprint(stderr, &asn_DEF_E2SM_KPM_E2SM_KPMv2_IndicationHeader, ihead);
 }
+//REVIEW AT the end of the function what known isses : 
+    //  the ranid arg is not used and we are not sure yet whether the IE affectations are correct or not 

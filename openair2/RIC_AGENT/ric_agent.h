@@ -116,6 +116,7 @@ typedef struct {
     long e2sm_met_timer_id;
 
     long gran_prd_timer_id;
+    long gran_prd_met_timer_id;
     long ric_connect_timer_id;
 
 	ric_ran_function_id_t e2sm_rsm_function_id;

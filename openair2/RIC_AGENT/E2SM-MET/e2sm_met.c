@@ -62,6 +62,18 @@ static int e2sm_met_ricInd_timer_expiry(
         uint8_t **outbuf,
         uint32_t *outlen);
 
+static int e2sm_met_gp_timer_expiry(
+        ric_agent_info_t *ric,
+        long timer_id,
+        ric_ran_function_id_t function_id,
+        long request_id,
+        long instance_id,
+        long action_id,
+        uint8_t **outbuf,
+        uint32_t *outlen);
+
+
+
 //TODONOW set the subID and granularity period somewhere 
 E2SM_MET_SubscriptionID_t    g_subscriptionID;
 
@@ -137,7 +149,7 @@ static int e2sm_met_ricInd_timer_expiry(
     }
 
     //REVIEW update the name and the params if necessar
-    indicationmessage = encode_kpm_Indication_Msg(ric, rs);
+    indicationmessage = encode_met_Indication_Msg(ric, rs);
 
     {
         char *error_buf = (char*)calloc(300, sizeof(char));
@@ -196,7 +208,7 @@ static int e2sm_met_ricInd_timer_expiry(
     return 0;
 }
 
-
+// ANCHOR  primary check of the function passed 
 // TODO this is a requirements (aka used by handle time expircy function) so it is imported here to be later modified to meet MET SM defs 
 // REVIEW this contains the dummy data, it is not real ones + it is duplicated aka RecordItems are creaated once and duplicated in all Records in measData
     // the thing that made this the the use of a table aka array instead of a matrix for troring the measurments : g_indMsgMeasRecItemArr
@@ -326,13 +338,14 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
     //  the granurality period and subId are not set by nay other function 
 
 
+// SECTION 
 //TODO  this is also a requirement of the function e2sm_kpm_ricInd_timer_expiry imported here to be set to hundle MET SM
-//NOW 
+//ANCHOR primary check passed
 void encode_e2sm_met_indication_header(ranid_t ranid, E2SM_MET_E2SM_MET_IndicationHeader_t *ihead) 
 {
     e2node_type_t node_type;
     ihead->indicationHeader_formats.present = E2SM_MET_E2SM_MET_IndicationHeader__indicationHeader_formats_PR_indicationHeader_Format1;
-//HERE 
+
     E2SM_MET_E2SM_MET_IndicationHeader_Format1_t* ind_header = &ihead->indicationHeader_formats.choice.indicationHeader_Format1;
 
     /* MET Node ID */
@@ -350,3 +363,28 @@ void encode_e2sm_met_indication_header(ranid_t ranid, E2SM_MET_E2SM_MET_Indicati
 }
 //REVIEW AT the end of the function what known isses : 
     //  the ranid arg is not used and we are not sure yet whether the IE affectations are correct or not 
+// !SECTION 
+
+
+
+//SECTION  this function is triggered when the granularity period timer is expired
+    // unlike KPM, MET service model does not need this function at the present version 
+    // because infos are gathered only when the Indication message is expired 
+    
+static int e2sm_met_gp_timer_expiry(
+        ric_agent_info_t *ric,
+        long timer_id,
+        ric_ran_function_id_t function_id,
+        long request_id,
+        long instance_id,
+        long action_id,
+        uint8_t **outbuf,
+        uint32_t *outlen)
+
+{
+   // this functions fundles the expiration of the granularity period timer
+   // in the normal use case this will trigger a data gathering loop that will save 
+   // the needed data in the global structure (matrix) of DataInfoItem
+    return 0;
+}
+// !SECTION 

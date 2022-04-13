@@ -9,6 +9,8 @@
 #include "e2ap_encoder.h"
 #include "e2sm_met.h"
 #include "e2ap_generate_messages.h"
+#include "INTEGER.h"
+#include "OCTET_STRING.h"
 
 //HERE
 #include "E2SM_MET_E2SM-MET-RANfunction-Description.h"
@@ -29,10 +31,10 @@
 #include "E2AP_Cause.h"
 
 
-extern f1ap_cudu_inst_t f1ap_cu_inst[MAX_eNB];
-extern int global_e2_node_id(ranid_t ranid, E2AP_GlobalE2node_ID_t* node_id);
-extern RAN_CONTEXT_t RC;
-extern eNB_RRC_KPI_STATS    rrc_kpi_stats;
+// extern f1ap_cudu_inst_t f1ap_cu_inst[MAX_eNB];
+// extern int global_e2_node_id(ranid_t ranid, E2AP_GlobalE2node_ID_t* node_id);
+// extern RAN_CONTEXT_t RC;
+// extern eNB_RRC_KPI_STATS    rrc_kpi_stats;
 
 /**
  ** The main thing with this abstraction is that we need per-SM modules
@@ -70,7 +72,7 @@ static int e2sm_met_gp_timer_expiry(
         uint32_t *outlen);
 
 static E2SM_MET_E2SM_MET_IndicationMessage_t* encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs);
-void encode_e2sm_met_indication_header(ranid_t ranid, E2SM_MET_E2SM_MET_IndicationHeader_t *ihead) 
+void encode_e2sm_met_indication_header(ranid_t ranid, E2SM_MET_E2SM_MET_IndicationHeader_t *ihead) ;
 
 //TODONOW set the subID and granularity period somewhere 
 E2SM_MET_SubscriptionID_t    g_subscriptionID;
@@ -99,7 +101,6 @@ static ric_service_model_t e2sm_met_model = {
 
 int e2sm_met_init(void)
 {
-    uint16_t i;
     ric_ran_function_t *func;
     E2SM_MET_E2SM_MET_RANfunction_Description_t *func_def;
 
@@ -234,7 +235,7 @@ static int e2sm_met_ricInd_timer_expiry(
         free(error_buf);
         //xer_fprint(stderr, &asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage, indicationmessage);
     }
-    g_granularityIndx = 0; // Resetting
+    // g_granularityIndx = 0; // Resetting
 
     //xer_fprint(stderr, &asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage, indicationmessage);
     uint8_t e2smbuffer[8192];
@@ -290,15 +291,18 @@ static E2SM_MET_E2SM_MET_IndicationMessage_t*
 encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
 {
     int ret;
-    uint8_t i,k;
+    uint64_t i,k;
 
-    E2SM_MET_MeasurementData_t* meas_data
+    E2SM_MET_MeasurementData_t* meas_data;
     E2SM_MET_MeasurementRecord_t* meas_rec[MAX_UE];
-    E2SM_MET_MeasurementRecordItem_t* meas_data_item[MAX_RECORD_ITEM];
+
+    //REVIEW this local variable can be used later on to hold the real data then extra saves my be added 
+    // E2SM_MET_MeasurementRecordItem_t* meas_data_item[MAX_RECORD_ITEM];
 
     
 
-    if (action_def_missing == TRUE)
+    // if (action_def_missing == TRUE)
+    if (1)
     { 
         for (i = 0; i < MAX_RECORD_ITEM ; i++)
         {
@@ -327,7 +331,7 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
                     break;
             }
         }
-        g_granularityIndx = 1;
+        // g_granularityIndx = 1;
     } 
 
     //RIC_AGENT_INFO("Granularity Idx=:%d\n",g_granularityIndx);
@@ -344,12 +348,15 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
          * Measurement Record->MeasurementRecordItem (List)
          */
         meas_rec[k] = (E2SM_MET_MeasurementRecord_t *)calloc(1, sizeof(E2SM_MET_MeasurementRecord_t));
-        meas_rec[k]->ueID = k;
-        meas_rec[k]->ueTag = "ABC";
+        // meas_rec[k]->ueID = asn_int642INTEGER(meas_rec[k]->ueID,k);
+        int ret = asn_uint642INTEGER(&meas_rec[k]->ueID,k);
+        // meas_rec[k]->ueTag = "ABC";
+        int ret2 = OCTET_STRING_fromString(&meas_rec[k]->ueTag,"ABC");
+
         for(i=0; i < MAX_RECORD_ITEM; i++)
         { 
             /* Meas Records meas_rec[]  have to be prepared for each Meas data item */
-            ret = ASN_SEQUENCE_ADD(&meas_rec[k]->list, g_indMsgMeasRecItemArr[i]);
+            ret = ASN_SEQUENCE_ADD(&meas_rec[k]->measRecordItem.list, g_indMsgMeasRecItemArr[i]);
             DevAssert(ret == 0);
         }
         
@@ -417,7 +424,6 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
 //ANCHOR primary check passed
 void encode_e2sm_met_indication_header(ranid_t ranid, E2SM_MET_E2SM_MET_IndicationHeader_t *ihead) 
 {
-    e2node_type_t node_type;
     ihead->indicationHeader_formats.present = E2SM_MET_E2SM_MET_IndicationHeader__indicationHeader_formats_PR_indicationHeader_Format1;
 
     E2SM_MET_E2SM_MET_IndicationHeader_Format1_t* ind_header = &ihead->indicationHeader_formats.choice.indicationHeader_Format1;
@@ -425,7 +431,10 @@ void encode_e2sm_met_indication_header(ranid_t ranid, E2SM_MET_E2SM_MET_Indicati
     /* MET Node ID */
     ind_header->metNodeID = (E2SM_MET_GlobalMETnode_ID_t *)calloc(1,sizeof(E2SM_MET_GlobalMETnode_ID_t));
     //REVIEW is the init of an int done correctly
-    *(ind_header->metNodeID) = 10; //REVIEW  // hack 
+    uint64_t nid = 10; // hack 
+    int ret = asn_uint642INTEGER(ind_header->metNodeID,nid); // hack 
+
+    // *(ind_header->metNodeID) = 10; //REVIEW  // hack 
 
 
     /* Collect Start Time Stamp */
@@ -467,9 +476,8 @@ static int e2sm_met_gp_timer_expiry(
 // SECTION  decode_and_handle_action_def function is responsable for getting the details of the sub and 
     // the infos needed for the RAN function to work 
 
-
 int 
-e2sm_kpm_decode_and_handle_action_def(uint8_t *def_buf, 
+e2sm_met_decode_and_handle_action_def(uint8_t *def_buf, 
                                           size_t def_size, 
                                           ric_ran_function_t *func,
                                           uint32_t      interval_ms,
@@ -477,9 +485,9 @@ e2sm_kpm_decode_and_handle_action_def(uint8_t *def_buf,
                                           ric_agent_info_t *ric)
 {
    
-    uint16_t subsId = 10;//hack
+    uint64_t subsId = 10;//hack
 
-    g_indMsgMeasInfoCnt = 0; // resetting
+    // g_indMsgMeasInfoCnt = 0; // resetting
    
     //REVIEW here since our SM is a very basic one with one default action Def and report style 
     // we  didn't respect the ORAN structure and we took a shortcut by ignoring the actionDefinitions
@@ -509,9 +517,13 @@ e2sm_kpm_decode_and_handle_action_def(uint8_t *def_buf,
         //g_subscriptionID.size = sizeof(subsId);
         //g_subscriptionID.buf = (uint8_t *)calloc(1,sizeof(subsId));
         //*g_subscriptionID.buf = subsId;
-		g_subscriptionID = subsId; 
 
-        action_def_missing = TRUE; /* Granularity Timer will not start */
+
+		// g_subscriptionID = subsId; // this is a wrong assignment 
+
+        int ret = asn_uint642INTEGER(&g_subscriptionID,subsId);
+
+        // action_def_missing = TRUE; /* Granularity Timer will not start */
         return 0;
     }
  

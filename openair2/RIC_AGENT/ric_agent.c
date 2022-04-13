@@ -463,13 +463,14 @@ void *ric_agent_task(void *args)
     RIC_AGENT_INFO("starting CU E2 agent task\n");
 
     e2sm_kpm_init();
-    e2sm_met_init()
-    //FIXME
 
 
 #ifdef ENABLE_RAN_SLICING
     e2sm_rsm_init(e2_conf[0]->e2node_type);
 #endif
+
+    //REVIEW 
+    e2sm_met_init();
 
     for (i = 0; i < RC.nb_inst; ++i) {
         if (e2_conf[i]->enabled) {

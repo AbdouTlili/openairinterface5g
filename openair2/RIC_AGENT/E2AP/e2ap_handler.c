@@ -34,6 +34,7 @@
 #include "e2ap_encoder.h"
 #include "e2ap_generate_messages.h"
 #include "e2sm_kpm.h"
+#include "e2sm_met.h"
 
 #include "E2AP_Cause.h"
 #include "E2AP_E2AP-PDU.h"
@@ -479,6 +480,11 @@ int e2ap_handle_ric_subscription_request(
                     }
                     break;
                   }
+                  case 3:
+                  {
+                    RIC_AGENT_WARN("THE MET RAN FUNCTION REVEIVED A SUBSCRIPTION ");
+                    break;
+                  }
 #ifdef ENABLE_RAN_SLICING        
                   case 2:
                   {
@@ -561,6 +567,11 @@ int e2ap_handle_ric_subscription_request(
                         goto errout;
                     }
                 }
+                
+                // IMPORTANT this is the place to setup the real function instance parameters after the subscription 
+                // an interesting thing here can be the application of the Action definition IE defined by the RIC 
+
+
             }
 
             if (ral->list.count == 0)
@@ -588,6 +599,11 @@ int e2ap_handle_ric_subscription_request(
         goto errout;
     }
 
+    //REVIEW 
+    //IMPORTANT Here is an other important section of code that represents a very importatnt step
+    // of the subscription handling : setting the timer for the indication messages.. 
+
+
   if (rs->function_id == 1)
   {
     //ric_ran_function_id_t* function_id = (ric_ran_function_id_t *)calloc(1, sizeof(ric_ran_function_id_t));
@@ -609,6 +625,34 @@ int e2ap_handle_ric_subscription_request(
         goto errout;
     }
   }
+
+    //REVIEW this section is important as it is the section code responsable for registring the 
+        // timer related to the periodicity of the indication message of the ran function 
+        // with the id 3, that is the MET reporting RAN function
+    if (rs->function_id == 3)
+    {
+    //ric_ran_function_id_t* function_id = (ric_ran_function_id_t *)calloc(1, sizeof(ric_ran_function_id_t));
+    //*function_id = func->function_id;
+    ric_ran_function_requestor_info_t* arg
+        = (ric_ran_function_requestor_info_t*)calloc(1, sizeof(ric_ran_function_requestor_info_t));
+
+    RIC_AGENT_WARN("THE E2AP HANDLER WANTED TO SET AN INDICATION_MESSAGE TIMER FOR THE MET ");
+    
+    // arg->function_id = func->function_id;
+    // arg->request_id = rs->request_id;
+    // arg->instance_id = rs->instance_id;
+    // arg->action_id = (LIST_FIRST(&rs->action_list))->id;
+    // ret = timer_setup(interval_sec, interval_us,
+    //         TASK_RIC_AGENT,
+    //         ric->ranid,
+    //         TIMER_PERIODIC,
+    //         (void *)arg,
+    //         &ric->e2sm_met_timer_id);
+    // if (ret < 0) {
+    //     RIC_AGENT_ERROR("failed to start timer\n");
+    //     goto errout;
+    // }
+    }
 
     return 0;
 

@@ -298,6 +298,7 @@ static int ric_agent_handle_sctp_new_association_resp(
             timer_remove(ric_agent_info[instance]->e2sm_kpm_timer_id);
             //#MET
             timer_remove(ric_agent_info[instance]->e2sm_met_timer_id);
+            
             ric_agent_info[instance]->e2sm_kpm_timer_id = 0;
             //#MET
             ric_agent_info[instance]->e2sm_met_timer_id = 0;
@@ -408,6 +409,9 @@ static void ric_agent_handle_timer_expiry(
     } else if (timer_id == ric->e2sm_kpm_timer_id) {
         ret = e2ap_handle_timer_expiry(ric, timer_id, arg, outbuf, outlen);
         *assoc_id = ric->data_conn_assoc_id;
+    }else if (timer_id == ric->e2sm_met_timer_id) {
+        ret = e2ap_handle_timer_expiry(ric, timer_id, arg, outbuf, outlen);
+        *assoc_id = ric->data_conn_assoc_id;
     } else if (timer_id == ric->gran_prd_timer_id) {
         ret = e2ap_handle_gp_timer_expiry(ric, timer_id, arg, outbuf, outlen);
     } else {
@@ -459,6 +463,7 @@ void *ric_agent_task(void *args)
     RIC_AGENT_INFO("starting CU E2 agent task\n");
 
     e2sm_kpm_init();
+    e2sm_met_init()
     //FIXME
 
 

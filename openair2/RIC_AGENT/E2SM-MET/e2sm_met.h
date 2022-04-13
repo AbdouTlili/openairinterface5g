@@ -3,7 +3,7 @@
 #ifndef _E2SM_COMMON_H_
 #define _E2SM_COMMON_H_
 
-extern int e2sm_kpm_init(void);
+extern int e2sm_met_init(void);
 
 extern int 
 e2sm_met_decode_and_handle_action_def(uint8_t *def_buf, 

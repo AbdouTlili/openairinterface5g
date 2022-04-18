@@ -87,7 +87,7 @@ E2SM_MET_MeasurementRecordItem_t *g_indMsgMeasRecItemArr[MAX_RECORD_ITEM];
 
 static ric_service_model_t e2sm_met_model = {
     .name = "e2sm_met",
-    .oid = "1.3.6.1.4.1.53148.1.2.2.97",
+    .oid = "1.3.6.1.4.1.53148",
     .handle_subscription_add = e2sm_met_subscription_add,
     .handle_subscription_del = e2sm_met_subscription_del,
     .handle_control = e2sm_met_control,

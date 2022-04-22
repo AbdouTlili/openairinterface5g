@@ -4,7 +4,7 @@
 -- **************************************************************
 
 E2SM-MET-IEs {
-    iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) oran(53148) e2(1) version2(2) e2sm(2) e2sm-METMON-IEs (97)}
+    iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) oran(53148) e2(1) version2(2) e2sm(2) e2sm-METMON-IEs (98)}
     DEFINITIONS AUTOMATIC TAGS ::= 
     
     BEGIN
@@ -39,21 +39,23 @@ E2SM-MET-IEs {
     maxnoofMeasurementInfo		INTEGER ::= 65536
     maxnoofMeasurementRecord	INTEGER ::= 65536
     maxnoofMeasurementValue		INTEGER ::= 65536
-
+    maxnoofRICStyles			INTEGER ::= 63
+    
+    
     -- ****************** 
     -- UE related defs 
     maxofUE             		INTEGER ::= 65536
-
+    
     UEID ::= INTEGER (1.. 4294967296, ...)
-
+    
     UETag ::= PrintableString(SIZE(1.. 150, ...))
-
+    
     UEItem ::= SEQUENCE {
         ueID	UEID,
         ueTag   UETag   OPTIONAL,
         ...
     }
-
+    
     --****************
     
     MeasurementInfoList ::= SEQUENCE (SIZE(1..maxnoofMeasurementInfo)) OF MeasurementInfoItem
@@ -79,6 +81,18 @@ E2SM-MET-IEs {
         ...
     }
     
+    MeasurementInfo-Action-List ::= SEQUENCE (SIZE(1..maxnoofMeasurementInfo)) OF MeasurementInfo-Action-Item
+    
+    MeasurementInfo-Action-Item ::= SEQUENCE {
+        measName				MeasurementTypeName,
+        measID					MeasurementTypeID				OPTIONAL,
+        ...
+    }
+    
+    MeasurementTypeName ::= PrintableString(SIZE(1.. 150, ...))
+    
+    MeasurementTypeID ::= INTEGER (1.. 65536, ...)
+    
     -- **************************************************************
     -- E2SM-MET Service Model IEs
     -- **************************************************************
@@ -103,6 +117,23 @@ E2SM-MET-IEs {
     -- **************************************************************
     --   Action Definition OCTET STRING contents
     -- **************************************************************
+        
+    E2SM-MET-ActionDefinition ::= SEQUENCE{
+        ric-Style-Type					RIC-Style-Type,
+        actionDefinition-formats 	CHOICE{
+            actionDefinition-Format1		E2SM-MET-ActionDefinition-Format1,
+            ...
+        },
+        ...
+    }
+    
+    E2SM-MET-ActionDefinition-Format1 ::= SEQUENCE {
+        cellObjID						CellObjectID,
+        measInfoList					MeasurementInfoList,
+        granulPeriod					GranularityPeriod,
+        subscriptID						SubscriptionID,
+        ...
+    }
     
     -- **************************************************************
     --   Indication Header OCTET STRING contents
@@ -151,9 +182,34 @@ E2SM-MET-IEs {
     
     E2SM-MET-RANfunction-Description ::= SEQUENCE{
         ranFunction-Name				RANfunction-Name,
+        ric-EventTriggerStyle-List		SEQUENCE (SIZE(1..maxnoofRICStyles)) OF RIC-EventTriggerStyle-Item 		OPTIONAL,
+        ric-ReportStyle-List			SEQUENCE (SIZE(1..maxnoofRICStyles)) OF RIC-ReportStyle-Item 			OPTIONAL,
         ...
     }
     
+    RIC-Style-Type ::= INTEGER
+    
+    RIC-Style-Name ::= PrintableString(SIZE(1.. 150, ...))
+    
+    RIC-Format-Type ::= INTEGER
+    
+    RIC-EventTriggerStyle-Item ::= SEQUENCE{
+        ric-EventTriggerStyle-Type			RIC-Style-Type,
+        ric-EventTriggerStyle-Name			RIC-Style-Name,
+        ric-EventTriggerFormat-Type			RIC-Format-Type,
+        ...
+    }
+    
+    RIC-ReportStyle-Item ::= SEQUENCE{
+        ric-ReportStyle-Type				RIC-Style-Type,
+        ric-ReportStyle-Name				RIC-Style-Name,
+        ric-ActionFormat-Type				RIC-Format-Type,
+        measInfo-Action-List				MeasurementInfo-Action-List, 
+        ric-IndicationHeaderFormat-Type		RIC-Format-Type,
+        ric-IndicationMessageFormat-Type	RIC-Format-Type,
+        ...
+    }
+        
     END
-
+    
     -- ASN1STOP

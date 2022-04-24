@@ -14,6 +14,9 @@
 
 //HERE
 #include "E2SM_MET_E2SM-MET-RANfunction-Description.h"
+#include "E2SM_MET_RIC-ReportStyle-Item.h"
+#include "E2SM_MET_RIC-EventTriggerStyle-Item.h"
+#include "E2SM_MET_MeasurementInfo-Action-Item.h"
 
 #include "E2SM_MET_SubscriptionID.h"
 #include "E2SM_MET_MeasurementData.h"
@@ -87,7 +90,7 @@ E2SM_MET_MeasurementRecordItem_t *g_indMsgMeasRecItemArr[MAX_RECORD_ITEM];
 
 static ric_service_model_t e2sm_met_model = {
     .name = "e2sm_met",
-    .oid = "1.3.6.1.4.1.53148",
+    .oid = "1.3.6.1.4.1.53148.1.2.2.98",
     .handle_subscription_add = e2sm_met_subscription_add,
     .handle_subscription_del = e2sm_met_subscription_del,
     .handle_control = e2sm_met_control,
@@ -95,20 +98,39 @@ static ric_service_model_t e2sm_met_model = {
     .handle_gp_timer_expiry = e2sm_met_gp_timer_expiry
 };
 
+kmp_meas_info_t e2sm_kpm_meas_info[MAX_KPM_MEAS] = {
+                                            {1, "RRC.ConnEstabAtt.sum", 0, FALSE},
+                                            {2, "RRC.ConnEstabSucc.sum", 0, FALSE},
+                                            {3, "RRC.ConnReEstabAtt.sum", 0, FALSE},
+                                            {4, "RRC.ConnMean", 0, FALSE},
+                                            {5, "RRC.ConnMax", 0, FALSE}
+                                        };
+
 //!SECTION
 
 //SECTION  Initializes MET Service model state and registers MET e2ap_ran_function_id_t number(s).
 
+
+/**
+ * Initializes KPM state and registers KPM e2ap_ran_function_id_t number(s).
+ */
 int e2sm_met_init(void)
 {
+    uint16_t i;
     ric_ran_function_t *func;
     E2SM_MET_E2SM_MET_RANfunction_Description_t *func_def;
-
+    E2SM_MET_RIC_ReportStyle_Item_t *ric_report_style_item;
+    E2SM_MET_RIC_EventTriggerStyle_Item_t *ric_event_trigger_style_item;
+    E2SM_MET_MeasurementInfo_Action_Item_t *meas_action_item1;
+    E2SM_MET_MeasurementInfo_Action_Item_t *meas_action_item2;
+    E2SM_MET_MeasurementInfo_Action_Item_t *meas_action_item3;
+    E2SM_MET_MeasurementInfo_Action_Item_t *meas_action_item4;
+    E2SM_MET_MeasurementInfo_Action_Item_t *meas_action_item5;
 
     func = (ric_ran_function_t *)calloc(1, sizeof(*func));
     func->model = &e2sm_met_model;
     func->revision = 1;
-    func->name = "E2SM-MET";
+    func->name = "Eurecom-MET-SM";
     func->description = "MET monitor";
 
 
@@ -121,6 +143,89 @@ int e2sm_met_init(void)
     func_def->ranFunction_Name.ranFunction_E2SM_OID.size = strlen(func->model->oid);
     func_def->ranFunction_Name.ranFunction_Description.buf = (uint8_t *)strdup(func->description);
     func_def->ranFunction_Name.ranFunction_Description.size = strlen(func->description);
+    /* Hack for E2t crash */
+    //REVIEW IMPORTANT
+    // long *ranFuncInst;
+    // ranFuncInst = (long *)calloc(1,sizeof(*func_def->ranFunction_Name.ranFunction_Instance));
+    // *ranFuncInst = 0;
+    // func_def->ranFunction_Name.ranFunction_Instance = ranFuncInst;
+
+
+    /* Sequence of Event trigger styles */
+    func_def->ric_EventTriggerStyle_List = (struct E2SM_MET_E2SM_MET_RANfunction_Description__ric_EventTriggerStyle_List *)calloc(1, sizeof(*func_def->ric_EventTriggerStyle_List));
+    ric_event_trigger_style_item = (E2SM_MET_RIC_EventTriggerStyle_Item_t *)calloc(1, sizeof(*ric_event_trigger_style_item));
+    ric_event_trigger_style_item->ric_EventTriggerStyle_Type = 1;
+    ric_event_trigger_style_item->ric_EventTriggerStyle_Name.buf = (uint8_t *)strdup("Trigger1");
+    ric_event_trigger_style_item->ric_EventTriggerStyle_Name.size = strlen("Trigger1");
+    ric_event_trigger_style_item->ric_EventTriggerFormat_Type = 1;
+    ASN_SEQUENCE_ADD(&func_def->ric_EventTriggerStyle_List->list, ric_event_trigger_style_item);
+
+    /* Sequence of Report styles */
+    func_def->ric_ReportStyle_List = (struct E2SM_MET_E2SM_MET_RANfunction_Description__ric_ReportStyle_List *)calloc(1, sizeof(*func_def->ric_ReportStyle_List));
+    ric_report_style_item = (E2SM_MET_RIC_ReportStyle_Item_t *)calloc(1, sizeof(*ric_report_style_item));
+    ric_report_style_item->ric_ReportStyle_Type = 6;
+    ric_report_style_item->ric_ReportStyle_Name.buf = (uint8_t *)strdup("O-CU-UP Measurement Container for the EPC connected deployment");
+    ric_report_style_item->ric_ReportStyle_Name.size = strlen("O-CU-UP Measurement Container for the EPC connected deployment");
+    ric_report_style_item->ric_ActionFormat_Type = 6; //pending 
+    
+    meas_action_item1 = (E2SM_MET_MeasurementInfo_Action_Item_t *)calloc(1, sizeof(*meas_action_item1));
+    meas_action_item1->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[0].meas_type_name);
+    meas_action_item1->measName.size = strlen(e2sm_kpm_meas_info[0].meas_type_name);
+
+    E2SM_MET_MeasurementTypeID_t *measID1;
+    measID1 = (E2SM_MET_MeasurementTypeID_t *)calloc(1, sizeof(*measID1));
+    *measID1 = e2sm_kpm_meas_info[0].meas_type_id;
+
+    meas_action_item1->measID = measID1;
+    ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item1);
+    
+    meas_action_item2 = (E2SM_MET_MeasurementInfo_Action_Item_t *)calloc(1, sizeof(*meas_action_item2));
+    meas_action_item2->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[1].meas_type_name); //(uint8_t *)strdup("RRC.ConnEstabSucc.sum");
+    meas_action_item2->measName.size = strlen(e2sm_kpm_meas_info[1].meas_type_name);
+
+    E2SM_MET_MeasurementTypeID_t *measID2;
+    measID2 = (E2SM_MET_MeasurementTypeID_t *)calloc(1, sizeof(*measID2));
+    *measID2 = e2sm_kpm_meas_info[1].meas_type_id;
+
+    meas_action_item2->measID = measID2;
+    ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item2);
+    
+    meas_action_item3 = (E2SM_MET_MeasurementInfo_Action_Item_t *)calloc(1, sizeof(*meas_action_item3));
+    meas_action_item3->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[2].meas_type_name);
+    meas_action_item3->measName.size = strlen(e2sm_kpm_meas_info[2].meas_type_name);
+
+    E2SM_MET_MeasurementTypeID_t *measID3;
+    measID3 = (E2SM_MET_MeasurementTypeID_t *)calloc(1, sizeof(*measID3));
+    *measID3 = e2sm_kpm_meas_info[2].meas_type_id;
+
+    meas_action_item3->measID = measID3;
+    ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item3);
+
+    meas_action_item4 = (E2SM_MET_MeasurementInfo_Action_Item_t *)calloc(1, sizeof(*meas_action_item4));
+    meas_action_item4->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[3].meas_type_name);
+    meas_action_item4->measName.size = strlen(e2sm_kpm_meas_info[3].meas_type_name);
+
+    E2SM_MET_MeasurementTypeID_t *measID4;
+    measID4 = (E2SM_MET_MeasurementTypeID_t *)calloc(1, sizeof(*measID4));
+    *measID4 = e2sm_kpm_meas_info[3].meas_type_id;
+
+    meas_action_item4->measID = measID4;
+    ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item4);
+
+    meas_action_item5 = (E2SM_MET_MeasurementInfo_Action_Item_t *)calloc(1, sizeof(*meas_action_item5));
+    meas_action_item5->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[4].meas_type_name);
+    meas_action_item5->measName.size = strlen(e2sm_kpm_meas_info[4].meas_type_name);
+
+    E2SM_MET_MeasurementTypeID_t *measID5;
+    measID5 = (E2SM_MET_MeasurementTypeID_t *)calloc(1, sizeof(*measID5));
+    *measID5 = e2sm_kpm_meas_info[4].meas_type_id;
+
+    meas_action_item5->measID = measID5;
+    ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item5);
+
+    ric_report_style_item->ric_IndicationHeaderFormat_Type = 1;
+    ric_report_style_item->ric_IndicationMessageFormat_Type = 1;
+    ASN_SEQUENCE_ADD(&func_def->ric_ReportStyle_List->list, ric_report_style_item);
 
     //xer_fprint(stderr, &asn_DEF_E2SM_MET_E2SM_MET_RANfunction_Description, func_def);
 
@@ -144,9 +249,9 @@ int e2sm_met_init(void)
 
 #if 0   
     /* Test code */
-    E2SM_KPM_E2SM_KPMv2_RANfunction_Description_t *func_defi;
+    E2SM_MET_E2SM_MET_RANfunction_Description_t *func_defi;
     asn_dec_rval_t decode_result;
-    decode_result = aper_decode_complete(NULL, &asn_DEF_E2SM_KPM_E2SM_KPMv2_RANfunction_Description,
+    decode_result = aper_decode_complete(NULL, &asn_DEF_E2SM_MET_E2SM_MET_RANfunction_Description,
                                                (void **)&func_defi, func->enc_definition, func->enc_definition_len);
     DevAssert(decode_result.code == RC_OK);
 #endif

@@ -98,7 +98,7 @@ static ric_service_model_t e2sm_met_model = {
     .handle_gp_timer_expiry = e2sm_met_gp_timer_expiry
 };
 
-kmp_meas_info_t e2sm_kpm_meas_info[MAX_KPM_MEAS] = {
+kmp_meas_info_t e2sm_met_meas_info[MAX_RECORD_ITEM] = {
                                             {1, "RRC.ConnEstabAtt.sum", 0, FALSE},
                                             {2, "RRC.ConnEstabSucc.sum", 0, FALSE},
                                             {3, "RRC.ConnReEstabAtt.sum", 0, FALSE},
@@ -169,56 +169,56 @@ int e2sm_met_init(void)
     ric_report_style_item->ric_ActionFormat_Type = 6; //pending 
     
     meas_action_item1 = (E2SM_MET_MeasurementInfo_Action_Item_t *)calloc(1, sizeof(*meas_action_item1));
-    meas_action_item1->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[0].meas_type_name);
-    meas_action_item1->measName.size = strlen(e2sm_kpm_meas_info[0].meas_type_name);
+    meas_action_item1->measName.buf = (uint8_t *)strdup(e2sm_met_meas_info[0].meas_type_name);
+    meas_action_item1->measName.size = strlen(e2sm_met_meas_info[0].meas_type_name);
 
     E2SM_MET_MeasurementTypeID_t *measID1;
     measID1 = (E2SM_MET_MeasurementTypeID_t *)calloc(1, sizeof(*measID1));
-    *measID1 = e2sm_kpm_meas_info[0].meas_type_id;
+    *measID1 = e2sm_met_meas_info[0].meas_type_id;
 
     meas_action_item1->measID = measID1;
     ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item1);
     
     meas_action_item2 = (E2SM_MET_MeasurementInfo_Action_Item_t *)calloc(1, sizeof(*meas_action_item2));
-    meas_action_item2->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[1].meas_type_name); //(uint8_t *)strdup("RRC.ConnEstabSucc.sum");
-    meas_action_item2->measName.size = strlen(e2sm_kpm_meas_info[1].meas_type_name);
+    meas_action_item2->measName.buf = (uint8_t *)strdup(e2sm_met_meas_info[1].meas_type_name); //(uint8_t *)strdup("RRC.ConnEstabSucc.sum");
+    meas_action_item2->measName.size = strlen(e2sm_met_meas_info[1].meas_type_name);
 
     E2SM_MET_MeasurementTypeID_t *measID2;
     measID2 = (E2SM_MET_MeasurementTypeID_t *)calloc(1, sizeof(*measID2));
-    *measID2 = e2sm_kpm_meas_info[1].meas_type_id;
+    *measID2 = e2sm_met_meas_info[1].meas_type_id;
 
     meas_action_item2->measID = measID2;
     ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item2);
     
     meas_action_item3 = (E2SM_MET_MeasurementInfo_Action_Item_t *)calloc(1, sizeof(*meas_action_item3));
-    meas_action_item3->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[2].meas_type_name);
-    meas_action_item3->measName.size = strlen(e2sm_kpm_meas_info[2].meas_type_name);
+    meas_action_item3->measName.buf = (uint8_t *)strdup(e2sm_met_meas_info[2].meas_type_name);
+    meas_action_item3->measName.size = strlen(e2sm_met_meas_info[2].meas_type_name);
 
     E2SM_MET_MeasurementTypeID_t *measID3;
     measID3 = (E2SM_MET_MeasurementTypeID_t *)calloc(1, sizeof(*measID3));
-    *measID3 = e2sm_kpm_meas_info[2].meas_type_id;
+    *measID3 = e2sm_met_meas_info[2].meas_type_id;
 
     meas_action_item3->measID = measID3;
     ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item3);
 
     meas_action_item4 = (E2SM_MET_MeasurementInfo_Action_Item_t *)calloc(1, sizeof(*meas_action_item4));
-    meas_action_item4->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[3].meas_type_name);
-    meas_action_item4->measName.size = strlen(e2sm_kpm_meas_info[3].meas_type_name);
+    meas_action_item4->measName.buf = (uint8_t *)strdup(e2sm_met_meas_info[3].meas_type_name);
+    meas_action_item4->measName.size = strlen(e2sm_met_meas_info[3].meas_type_name);
 
     E2SM_MET_MeasurementTypeID_t *measID4;
     measID4 = (E2SM_MET_MeasurementTypeID_t *)calloc(1, sizeof(*measID4));
-    *measID4 = e2sm_kpm_meas_info[3].meas_type_id;
+    *measID4 = e2sm_met_meas_info[3].meas_type_id;
 
     meas_action_item4->measID = measID4;
     ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item4);
 
     meas_action_item5 = (E2SM_MET_MeasurementInfo_Action_Item_t *)calloc(1, sizeof(*meas_action_item5));
-    meas_action_item5->measName.buf = (uint8_t *)strdup(e2sm_kpm_meas_info[4].meas_type_name);
-    meas_action_item5->measName.size = strlen(e2sm_kpm_meas_info[4].meas_type_name);
+    meas_action_item5->measName.buf = (uint8_t *)strdup(e2sm_met_meas_info[4].meas_type_name);
+    meas_action_item5->measName.size = strlen(e2sm_met_meas_info[4].meas_type_name);
 
     E2SM_MET_MeasurementTypeID_t *measID5;
     measID5 = (E2SM_MET_MeasurementTypeID_t *)calloc(1, sizeof(*measID5));
-    *measID5 = e2sm_kpm_meas_info[4].meas_type_id;
+    *measID5 = e2sm_met_meas_info[4].meas_type_id;
 
     meas_action_item5->measID = measID5;
     ASN_SEQUENCE_ADD(&ric_report_style_item->measInfo_Action_List.list, meas_action_item5);
@@ -610,10 +610,10 @@ e2sm_met_decode_and_handle_action_def(uint8_t *def_buf,
         //                              (E2SM_KPM_MeasurementInfoItem_KPMv2_t *)calloc(1,sizeof(E2SM_KPM_MeasurementInfoItem_KPMv2_t));
         //     g_indMsgMeasInfoItemArr[g_indMsgMeasInfoCnt]->measType.present = E2SM_KPM_MeasurementType_KPMv2_PR_measName;
         //     g_indMsgMeasInfoItemArr[g_indMsgMeasInfoCnt]->measType.choice.measName.buf =
-        //                                              (uint8_t *)strdup(e2sm_kpm_meas_info[i].meas_type_name);
+        //                                              (uint8_t *)strdup(e2sm_met_meas_info[i].meas_type_name);
         //     g_indMsgMeasInfoItemArr[g_indMsgMeasInfoCnt]->measType.choice.measName.size =
-        //                                                         strlen(e2sm_kpm_meas_info[i].meas_type_name);
-        //     e2sm_kpm_meas_info[i].subscription_status = TRUE;
+        //                                                         strlen(e2sm_met_meas_info[i].meas_type_name);
+        //     e2sm_met_meas_info[i].subscription_status = TRUE;
         //     g_indMsgMeasInfoCnt++;
         // }
         // *g_granulPeriod = 10; //Hack

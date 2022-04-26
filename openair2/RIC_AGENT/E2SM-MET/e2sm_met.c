@@ -342,7 +342,7 @@ static int e2sm_met_ricInd_timer_expiry(
     }
     // g_granularityIndx = 0; // Resetting
 
-    //xer_fprint(stderr, &asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage, indicationmessage);
+    // xer_fprint(stderr, &asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage, indicationmessage);
     uint8_t e2smbuffer[8192];
     size_t e2smbuffer_size = 8192;
 
@@ -502,6 +502,8 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
     ASN_STRUCT_RESET(asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage_Format1, format);
     //format->subscriptID.size = g_subscriptionID.size;
     //format->subscriptID.buf = g_subscriptionID.buf;
+    uint64_t subsId = 10;//hack
+    ret = asn_uint642INTEGER(&g_subscriptionID,subsId);
     format->subscriptID = g_subscriptionID;
 	format->measInfoList = meas_info_list;
     format->measData = *meas_data;

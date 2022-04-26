@@ -631,27 +631,29 @@ int e2ap_handle_ric_subscription_request(
         // with the id 3, that is the MET reporting RAN function
     if (rs->function_id == 3)
     {
-    //ric_ran_function_id_t* function_id = (ric_ran_function_id_t *)calloc(1, sizeof(ric_ran_function_id_t));
-    //*function_id = func->function_id;
-    // ric_ran_function_requestor_info_t* arg
-    //     = (ric_ran_function_requestor_info_t*)calloc(1, sizeof(ric_ran_function_requestor_info_t));
 
     RIC_AGENT_WARN("THE E2AP HANDLER WANTED TO SET AN INDICATION_MESSAGE TIMER FOR THE MET ");
+
+    ric_ran_function_id_t* function_id = (ric_ran_function_id_t *)calloc(1, sizeof(ric_ran_function_id_t));
+    *function_id = func->function_id;
+    ric_ran_function_requestor_info_t* arg
+        = (ric_ran_function_requestor_info_t*)calloc(1, sizeof(ric_ran_function_requestor_info_t));
+
     
-    // arg->function_id = func->function_id;
-    // arg->request_id = rs->request_id;
-    // arg->instance_id = rs->instance_id;
-    // arg->action_id = (LIST_FIRST(&rs->action_list))->id;
-    // ret = timer_setup(interval_sec, interval_us,
-    //         TASK_RIC_AGENT,
-    //         ric->ranid,
-    //         TIMER_PERIODIC,
-    //         (void *)arg,
-    //         &ric->e2sm_met_timer_id);
-    // if (ret < 0) {
-    //     RIC_AGENT_ERROR("failed to start timer\n");
-    //     goto errout;
-    // }
+    arg->function_id = func->function_id;
+    arg->request_id = rs->request_id;
+    arg->instance_id = rs->instance_id;
+    arg->action_id = (LIST_FIRST(&rs->action_list))->id;
+    ret = timer_setup(interval_sec, interval_us,
+            TASK_RIC_AGENT,
+            ric->ranid,
+            TIMER_PERIODIC,
+            (void *)arg,
+            &ric->e2sm_met_timer_id);
+    if (ret < 0) {
+        RIC_AGENT_ERROR("failed to start timer\n");
+        goto errout;
+    }
     }
 
     return 0;

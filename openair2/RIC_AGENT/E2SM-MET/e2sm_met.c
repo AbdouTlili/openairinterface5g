@@ -89,7 +89,7 @@ E2SM_MET_GranularityPeriod_t     *g_granulPeriod;
 E2SM_MET_MeasurementRecordItem_t *g_indMsgMeasRecItemArr[MAX_RECORD_ITEM];
 
 static ric_service_model_t e2sm_met_model = {
-    .name = "e2sm-met",
+    .name = "e2sm_met",
     .oid = "1.3.6.1.4.1.53148.1.2.2.98",
     .handle_subscription_add = e2sm_met_subscription_add,
     .handle_subscription_del = e2sm_met_subscription_del,
@@ -502,6 +502,7 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
     ASN_STRUCT_RESET(asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage_Format1, format);
     //format->subscriptID.size = g_subscriptionID.size;
     //format->subscriptID.buf = g_subscriptionID.buf;
+    //ANCHOR This sub Id is important so avoid e2t crash 
     uint64_t subsId = 10;//hack
     ret = asn_uint642INTEGER(&g_subscriptionID,subsId);
     format->subscriptID = g_subscriptionID;

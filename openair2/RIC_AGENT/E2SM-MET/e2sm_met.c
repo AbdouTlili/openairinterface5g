@@ -49,7 +49,12 @@
 //Functions of the SM 
 
 // SECTION this section is for Constatnts, global vars definitions and function signatures 
+
+// debug functions 
+void encode_decode(E2SM_MET_MeasurementRecord_t *mr);
 void log_buf_content(const void *struct_to_encode_and_print,const struct asn_TYPE_descriptor_s *type_to_encode, char title[] );
+void log_decode_buf_content(const void *buffer,size_t buf_len,void **struct_to_decode_and_print,const struct asn_TYPE_descriptor_s *type_to_decode, char title[] );
+
 static int e2sm_met_subscription_add(ric_agent_info_t *ric, ric_subscription_t *sub);
 static int e2sm_met_subscription_del(ric_agent_info_t *ric, ric_subscription_t *sub, int force,long *cause,long *cause_detail);
 static int e2sm_met_control(ric_agent_info_t *ric,ric_control_t *control);
@@ -335,10 +340,10 @@ static int e2sm_met_ricInd_timer_expiry(
         char *error_buf = (char*)calloc(300, sizeof(char));
         size_t errlen = 0;
         asn_check_constraints(&asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage, indicationmessage, error_buf, &errlen);
-        fprintf(stderr,"MET IND error length %zu\n", errlen);
-        fprintf(stderr,"MET IND error buf %s\n", error_buf);
-        free(error_buf);
-        xer_fprint(stderr, &asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage, indicationmessage);
+        // fprintf(stderr,"MET IND error length %zu\n", errlen);
+        // fprintf(stderr,"MET IND error buf %s\n", error_buf);
+        // free(error_buf);
+        // xer_fprint(stderr, &asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage, indicationmessage);
     }
     // g_granularityIndx = 0; // Resetting
 
@@ -426,7 +431,7 @@ static int e2sm_met_ricInd_timer_expiry(
 static E2SM_MET_E2SM_MET_IndicationMessage_t*
 encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
 {
-    int ret;
+    int ret, ret2;
     uint64_t i,k;
 
     E2SM_MET_MeasurementData_t* meas_data;
@@ -444,11 +449,6 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
         {
             g_indMsgMeasRecItemArr[i] = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
             g_indMsgMeasRecItemArr[i]->present = E2SM_MET_MeasurementRecordItem_PR_integer;
-
-            E2SM_MET_MeasurementRecordItem_t *t = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
-            t->present = E2SM_MET_MeasurementRecordItem_PR_integer;
-            t->choice.integer = 50;
-            log_buf_content(t,&asn_DEF_E2SM_MET_MeasurementRecordItem,"helllooo measRecItem" );
 
             switch(i)
             {
@@ -482,6 +482,49 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
      */
     meas_data = (E2SM_MET_MeasurementData_t*)calloc(1, sizeof(E2SM_MET_MeasurementData_t));
     DevAssert(meas_data!=NULL);
+#if 1
+        int64_t tmp_id = 11;
+        E2SM_MET_MeasurementRecord_t *meas_rec_debug = (E2SM_MET_MeasurementRecord_t *)calloc(1, sizeof(E2SM_MET_MeasurementRecord_t));
+        // meas_rec[k]->ueID = asn_int642INTEGER(meas_rec[k]->ueID,k);
+        // ret = asn_uint642INTEGER(&meas_rec_debug->ueID,tmp_id);
+
+        meas_rec_debug->ueID = 10;
+
+        // char *name = "AAAA";
+        // meas_rec_debug->ueTag.buf = (uint8_t *)strdup(name);
+        // meas_rec_debug->ueTag.size = strlen(name);
+
+        // meas_rec[k]->ueTag = "ABC";
+        // ret2 = OCTET_STRING_fromString(&meas_rec_debug->ueTag,"ABC");
+
+
+        E2SM_MET_MeasurementRecordItem_t *t = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        t->present = E2SM_MET_MeasurementRecordItem_PR_integer;
+        t->choice.integer = 10;
+
+        E2SM_MET_MeasurementRecordItem_t *t2 = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        t2->present = E2SM_MET_MeasurementRecordItem_PR_integer;
+        t2->choice.integer = 20;
+
+        ret = ASN_SEQUENCE_ADD(&meas_rec_debug->measRecordItem.list, t);
+        DevAssert(ret == 0);
+
+        ret = ASN_SEQUENCE_ADD(&meas_rec_debug->measRecordItem.list, t2);
+        DevAssert(ret == 0);    
+
+
+
+        // xer_fprint(stderr, &asn_DEF_E2SM_MET_MeasurementRecord,meas_rec_debug);
+
+        encode_decode(meas_rec_debug);
+
+        // log_buf_content(meas_rec_debug,&asn_DEF_E2SM_MET_MeasurementRecord,"helllooo measRec--" );
+
+        
+
+
+#endif 
+
     
     for (k=0; k < MAX_UE; k++)
     {
@@ -491,9 +534,12 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
         int tmp_id = 10;
         meas_rec[k] = (E2SM_MET_MeasurementRecord_t *)calloc(1, sizeof(E2SM_MET_MeasurementRecord_t));
         // meas_rec[k]->ueID = asn_int642INTEGER(meas_rec[k]->ueID,k);
-        int ret = asn_uint642INTEGER(&meas_rec[k]->ueID,tmp_id);
+        // int ret1 = asn_uint642INTEGER(&meas_rec[k]->ueID,tmp_id);
+        meas_rec[k]->ueID = 10;
         // meas_rec[k]->ueTag = "ABC";
-        int ret2 = OCTET_STRING_fromString(&meas_rec[k]->ueTag,"ABC");
+        // int ret22 = OCTET_STRING_fromString(&meas_rec[k]->ueTag,"ABC");
+        // &meas_rec[k]->ueTag.buf = (uint8_t *)strdup("ABC");
+        // &meas_rec[k]->ueTag.size = strlen("ABC");
 
         for(i=0; i < MAX_RECORD_ITEM; i++)
         { 
@@ -686,15 +732,15 @@ e2sm_met_decode_and_handle_action_def(uint8_t *def_buf,
 void log_buf_content(const void *struct_to_encode_and_print,const struct asn_TYPE_descriptor_s *type_to_encode, char title[] ){
 
     fprintf(stderr,"start------------------- %s --------------------\n",title);
-    uint8_t e2sm_header_buf_style1[8192];
-    size_t e2sm_header_buf_size_style1 = 8192;
+    uint8_t buffer[8192];
+    size_t buffer_size = 8192;
     asn_enc_rval_t er_header_style1 = asn_encode_to_buffer(
             NULL,
             ATS_ALIGNED_BASIC_PER,
             type_to_encode,
             struct_to_encode_and_print,
-            e2sm_header_buf_style1,
-            e2sm_header_buf_size_style1);
+            buffer,
+            buffer_size);
 
     if (er_header_style1.encoded < 0) {
         fprintf(stderr, "ERROR encoding %s, name=%s, tag=%s",title, er_header_style1.failed_type->name, er_header_style1.failed_type->xml_tag);
@@ -706,7 +752,7 @@ void log_buf_content(const void *struct_to_encode_and_print,const struct asn_TYP
     fprintf(stderr, "Here is the length:  len = %d \n",er_header_style1.encoded);
     for (int i = 0; i < er_header_style1.encoded; i++)
     {
-        fprintf(stderr, "0x%02x,", e2sm_header_buf_style1[i]);
+        fprintf(stderr, "0x%02x,", buffer[i]);
     }
     fprintf(stderr,"\n\n");
     if (er_header_style1.encoded < 0) {
@@ -714,5 +760,73 @@ void log_buf_content(const void *struct_to_encode_and_print,const struct asn_TYP
     }
 
     fprintf(stderr,"end------------------- %s --------------------\n",title);
+
+    // log_decode_buf_content(buffer,er_header_style1.encoded,&struct_to_encode_and_print,type_to_encode,title);
+
+}
+
+
+void log_decode_buf_content(const void *buffer,size_t buf_len,void **struct_to_decode_and_print,const struct asn_TYPE_descriptor_s *type_to_decode, char title[] ){
+    
+    fprintf(stderr,"\tstart-decode------------------ %s --------------------\n",title);
+
+    ///hard coded for measItem 
+
+E2SM_MET_MeasurementRecordItem_t *mr = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+    asn_dec_rval_t er = asn_decode(null, ATS_ALIGNED_BASIC_PER,&asn_DEF_E2SM_MET_MeasurementRecordItem,(void **) &mr, buffer, buf_len);
+    if (er.code != RC_OK) {
+        fprintf(stderr, "\tERROR decoding - consumed : %ld - code %ld\n ",er.consumed,er.code);
+    }else{
+        fprintf(stderr,"\t  -------   start decoding ------------\n");
+        xer_fprint(stderr, &asn_DEF_E2SM_MET_MeasurementRecord,mr);
+    }
+
+
+    fprintf(stderr,"\tend-decode------------------ %s --------------------\n",title);
+
+}
+
+void encode_decode(E2SM_MET_MeasurementRecord_t *mr){
+
+    fprintf(stderr,"start-encode decode------------------  --------------------\n");
+
+    uint8_t buffer[8192];
+    size_t buffer_size = 8192;
+
+    E2SM_MET_MeasurementRecord_t *mr2 = (E2SM_MET_MeasurementRecord_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecord_t));
+
+
+    //encoding
+    asn_enc_rval_t er_header_style1 = asn_encode_to_buffer(
+        NULL,
+        ATS_ALIGNED_BASIC_PER,
+        &asn_DEF_E2SM_MET_MeasurementRecord,
+        mr,
+        buffer,
+        buffer_size);
+
+    if (er_header_style1.encoded < 0) {
+        fprintf(stderr, "ERROR encoding, name=%s, tag=%s", er_header_style1.failed_type->name, er_header_style1.failed_type->xml_tag);
+    }
+
+    xer_fprint(stderr, &asn_DEF_E2SM_MET_MeasurementRecord,mr);
+
+    // uint8_t buffer2[8192] = {0x00, 0x09, 0x02, 0x00, 0x41, 0x41, 0x41, 0x41, 0x02, 0x00, 0x0a, 0x00, 0x14};
+    // for (int i = 0; i < 20; i++)
+    // {
+    //     fprintf(stderr, "0x%02x,", buffer2[i]);
+    // }
+    // fprintf(stderr,"\n\n");
+
+    //decoding 
+    asn_dec_rval_t er = asn_decode(null, ATS_ALIGNED_BASIC_PER,&asn_DEF_E2SM_MET_MeasurementRecord,(void **) &mr2, buffer, er_header_style1.encoded );
+    if (er.code != RC_OK) {
+        fprintf(stderr, "\tERROR decoding - consumed : %ld - code %ld\n ",er.consumed,er.code);
+    }else{
+        fprintf(stderr,"\t  -------   start decoding ------------\n");
+        xer_fprint(stderr, &asn_DEF_E2SM_MET_MeasurementRecord ,mr2);
+    }
+
+    fprintf(stderr,"\tend-encode-decode------------------  --------------------\n");
 
 }

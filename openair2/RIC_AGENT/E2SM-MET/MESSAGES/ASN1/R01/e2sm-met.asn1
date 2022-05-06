@@ -46,7 +46,7 @@ E2SM-MET-IEs {
     -- UE related defs 
     maxofUE             		INTEGER ::= 65536
     
-    UEID ::= INTEGER (1.. 4294967296, ...)
+    UEID ::= INTEGER (0.. 255, ...)
     
     UETag ::= PrintableString(SIZE(1.. 150, ...))
     
@@ -69,7 +69,7 @@ E2SM-MET-IEs {
     
     MeasurementRecord ::= SEQUENCE {
         ueID					UEID,
-        ueTag                   UETag,
+        ueTag                   UETag   OPTIONAL,
         measRecordItem  SEQUENCE (SIZE(1..maxnoofMeasurementValue)) OF MeasurementRecordItem,
         ...
     }

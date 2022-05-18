@@ -69,17 +69,14 @@ E2SM-MET-IEs {
     
     MeasurementRecord ::= SEQUENCE {
         ueID					UEID,
-        ueTag                   UETag   OPTIONAL,
-        measRecordItem  SEQUENCE (SIZE(1..maxnoofMeasurementValue)) OF MeasurementRecordItem,
+        measRecordItemList   MeasurementRecordItemList   OPTIONAL,
         ...
     }
+
+    MeasurementRecordItemList ::= SEQUENCE (SIZE(1..100)) OF MeasurementRecordItem
     
-    MeasurementRecordItem ::= CHOICE {
-        integer					INTEGER (0..4294967295),
-        real					REAL,
-        noValue					NULL,
-        ...
-    }
+    MeasurementRecordItem ::= INTEGER (0..65535)
+
     
     MeasurementInfo-Action-List ::= SEQUENCE (SIZE(1..maxnoofMeasurementInfo)) OF MeasurementInfo-Action-Item
     

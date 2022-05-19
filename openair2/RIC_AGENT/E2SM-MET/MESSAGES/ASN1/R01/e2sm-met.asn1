@@ -65,12 +65,12 @@ E2SM-MET-IEs {
         ...
     }
     
-    MeasurementData ::= SEQUENCE (SIZE(1..maxnoofMeasurementRecord)) OF MeasurementRecord
+    MeasurementData ::= SEQUENCE (SIZE(1..200)) OF MeasurementRecord
     
     MeasurementRecord ::= SEQUENCE {
         ueID					UEID,
         ueTag                   UETag   OPTIONAL,
-        measRecordItem  SEQUENCE (SIZE(1..maxnoofMeasurementValue)) OF MeasurementRecordItem,
+        measRecordItem  SEQUENCE (SIZE(1..100)) OF MeasurementRecordItem,
         ...
     }
     

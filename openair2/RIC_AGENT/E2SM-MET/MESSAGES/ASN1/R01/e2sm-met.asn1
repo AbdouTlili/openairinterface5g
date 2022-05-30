@@ -54,11 +54,8 @@ E2SM-MET-IEs {
     --****************
     
     MeasurementInfoList ::= SEQUENCE (SIZE(1..65535)) OF MeasurementInfoItem
-    
-    MeasurementInfoItem ::= SEQUENCE {
-        measType				PrintableString (SIZE (0..15), ...),
-        ...
-    }
+
+    MeasurementInfoItem::= PrintableString(SIZE(1.. 50))
     
     MeasurementData ::= SEQUENCE (SIZE(1..65535)) OF MeasurementRecord
     
@@ -83,7 +80,7 @@ E2SM-MET-IEs {
         ...
     }
     
-    MeasurementTypeName ::= PrintableString(SIZE(1.. 150, ...))
+    MeasurementTypeName ::= PrintableString(SIZE(1.. 150))
     
     MeasurementTypeID ::= INTEGER (1.. 65535, ...)
     

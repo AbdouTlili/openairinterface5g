@@ -88,7 +88,7 @@ void encode_e2sm_met_indication_header(ranid_t ranid, E2SM_MET_E2SM_MET_Indicati
 E2SM_MET_GranularityPeriod_t     *g_granulPeriod;
 
 
-#define MAX_RECORD_ITEM 5  // here max recordItems is the same as THE FIXED number of the measurments we have 
+#define MAX_RECORD_ITEM 12  // here max recordItems is the same as THE FIXED number of the measurments we have 
 #define MAX_UE 5
 
 E2SM_MET_MeasurementRecordItem_t *g_indMsgMeasRecItemArr[MAX_RECORD_ITEM];
@@ -103,12 +103,19 @@ static ric_service_model_t e2sm_met_model = {
     .handle_gp_timer_expiry = e2sm_met_gp_timer_expiry
 };
 
-kmp_meas_info_t e2sm_met_meas_info[MAX_RECORD_ITEM] = {
-                                            {1, "RRC.ConnEstabAatt.sum", 0, FALSE},
-                                            {2, "RRC.ConnEstabSucc.sum", 0, FALSE},
-                                            {3, "RRC.ConnReEstabAtt.sum", 0, FALSE},
-                                            {4, "RRC.ConnMean", 0, FALSE},
-                                            {5, "RRC.ConnMax", 0, FALSE}
+met_meas_info_t e2sm_met_meas_info[MAX_RECORD_ITEM] = {
+                                            {1, "cqi", 0, FALSE},
+                                            {2, "rsrp", 0, FALSE},
+                                            {3, "mcs-ul", 0, FALSE},
+                                            {4, "mcs-dl", 0, FALSE},
+                                            {5, "phr", 0, FALSE},
+                                            {6, "bler-ul", 0, FALSE},
+                                            {7, "bler-dl", 0, FALSE},
+                                            {8, "errors-ul", 0, FALSE},
+                                            {9, "data-dl", 0, FALSE},
+                                            {10, "data-dl", 0, FALSE},
+                                            {11, "throughput", 0, FALSE},
+                                            {12, "snr", 0, FALSE}
                                         };
 
 //!SECTION
@@ -476,7 +483,8 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
                     break;
 
                 default:
-                    break;
+                    g_indMsgMeasRecItemArr[i]->buf  = (uint8_t *)strdup("zzz");
+                    g_indMsgMeasRecItemArr[i]->size = strlen("zzz");
             }
         }
         // g_granularityIndx = 1;
@@ -606,10 +614,10 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
                                     E2SM_MET_E2SM_MET_IndicationMessage__indicationMessage_formats_PR_indicationMessage_Format1;
     indicationmessage->indicationMessage_formats.choice.indicationMessage_Format1 = *format;
 
-    E2SM_MET_E2SM_MET_IndicationMessage_t* tmp_ind = 
-                            (E2SM_MET_E2SM_MET_IndicationMessage_t*)calloc(1, sizeof(E2SM_MET_E2SM_MET_IndicationMessage_t));
+    // E2SM_MET_E2SM_MET_IndicationMessage_t* tmp_ind = 
+    //                         (E2SM_MET_E2SM_MET_IndicationMessage_t*)calloc(1, sizeof(E2SM_MET_E2SM_MET_IndicationMessage_t));
 
-    encode_decode(&asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage,indicationmessage,tmp_ind);  
+    // // encode_decode(&asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage,indicationmessage,tmp_ind);  
 
     E2SM_MET_E2SM_MET_IndicationMessage_t* tmp_indicationmessage = 
                             (E2SM_MET_E2SM_MET_IndicationMessage_t*)calloc(1, sizeof(E2SM_MET_E2SM_MET_IndicationMessage_t));
@@ -648,54 +656,62 @@ void encode_e2sm_met_indication_header(ranid_t ranid, E2SM_MET_E2SM_MET_Indicati
     *((uint32_t *)(ind_header->colletStartTime.buf)) = htonl((uint32_t)time(NULL));
 
     // E2SM_MET_MeasurementInfoList_t* meas_info_list = (E2SM_MET_MeasurementInfoList_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoList_t));
-    
-    E2SM_MET_MeasurementInfoItem_t* meas_info_item1 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
-    meas_info_item1->buf = (uint8_t *)strdup("mcs");
-    meas_info_item1->size = strlen("mcs");
-    int ret = ASN_SEQUENCE_ADD( &ind_header->measInfoList.list, meas_info_item1);
-    DevAssert(ret == 0);
 
-    E2SM_MET_MeasurementInfoItem_t* meas_info_item2 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
-    meas_info_item2->buf = (uint8_t *)strdup("phr");
-    meas_info_item2->size = strlen("phr");
-    ret = ASN_SEQUENCE_ADD( &ind_header->measInfoList.list, meas_info_item2);
-    DevAssert(ret == 0);
+    for (int kpi = 0; kpi < MAX_RECORD_ITEM; kpi++){
+        E2SM_MET_MeasurementInfoItem_t* tmp_meas_info_item = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
+        tmp_meas_info_item->buf = (uint8_t *)strdup(e2sm_met_meas_info[kpi].meas_type_name);
+        tmp_meas_info_item->size = strlen(e2sm_met_meas_info[kpi].meas_type_name);
+        int ret = ASN_SEQUENCE_ADD( &ind_header->measInfoList.list, tmp_meas_info_item);
+        DevAssert(ret == 0);
+    }
 
-    E2SM_MET_MeasurementInfoItem_t* meas_info_item3 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
-    meas_info_item3->buf = (uint8_t *)strdup("bler");
-    meas_info_item3->size = strlen("bler");
-    ret = ASN_SEQUENCE_ADD(&ind_header->measInfoList.list, meas_info_item3);
-    DevAssert(ret == 0);
+    // E2SM_MET_MeasurementInfoItem_t* meas_info_item1 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
+    // meas_info_item1->buf = (uint8_t *)strdup("mcs");
+    // meas_info_item1->size = strlen("mcs");
+    // int ret = ASN_SEQUENCE_ADD( &ind_header->measInfoList.list, meas_info_item1);
+    // DevAssert(ret == 0);
 
-    E2SM_MET_MeasurementInfoItem_t* meas_info_item4 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
-    meas_info_item4->buf = (uint8_t *)strdup("errors");
-    meas_info_item4->size = strlen("errors");
-    ret = ASN_SEQUENCE_ADD(&ind_header->measInfoList.list, meas_info_item4);
-    DevAssert(ret == 0);
+    // E2SM_MET_MeasurementInfoItem_t* meas_info_item2 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
+    // meas_info_item2->buf = (uint8_t *)strdup("phr");
+    // meas_info_item2->size = strlen("phr");
+    // ret = ASN_SEQUENCE_ADD( &ind_header->measInfoList.list, meas_info_item2);
+    // DevAssert(ret == 0);
 
-    E2SM_MET_MeasurementInfoItem_t* meas_info_item5 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
-    meas_info_item5->buf = (uint8_t *)strdup("throughput");
-    meas_info_item5->size = strlen("throughput");
-    ret = ASN_SEQUENCE_ADD(&ind_header->measInfoList.list, meas_info_item5);
-    DevAssert(ret == 0);
+    // E2SM_MET_MeasurementInfoItem_t* meas_info_item3 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
+    // meas_info_item3->buf = (uint8_t *)strdup("bler");
+    // meas_info_item3->size = strlen("bler");
+    // ret = ASN_SEQUENCE_ADD(&ind_header->measInfoList.list, meas_info_item3);
+    // DevAssert(ret == 0);
 
-    E2SM_MET_MeasurementInfoItem_t* meas_info_item6 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
-    meas_info_item6->buf = (uint8_t *)strdup("snr");
-    meas_info_item6->size = strlen("snr");
-    ret = ASN_SEQUENCE_ADD(&ind_header->measInfoList.list, meas_info_item6);
-    DevAssert(ret == 0);
+    // E2SM_MET_MeasurementInfoItem_t* meas_info_item4 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
+    // meas_info_item4->buf = (uint8_t *)strdup("errors");
+    // meas_info_item4->size = strlen("errors");
+    // ret = ASN_SEQUENCE_ADD(&ind_header->measInfoList.list, meas_info_item4);
+    // DevAssert(ret == 0);
 
-    E2SM_MET_MeasurementInfoItem_t* meas_info_item7 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
-    meas_info_item7->buf = (uint8_t *)strdup("rsrp");
-    meas_info_item7->size = strlen("rsrp");
-    ret = ASN_SEQUENCE_ADD(&ind_header->measInfoList.list, meas_info_item7);
-    DevAssert(ret == 0);
+    // E2SM_MET_MeasurementInfoItem_t* meas_info_item5 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
+    // meas_info_item5->buf = (uint8_t *)strdup("throughput");
+    // meas_info_item5->size = strlen("throughput");
+    // ret = ASN_SEQUENCE_ADD(&ind_header->measInfoList.list, meas_info_item5);
+    // DevAssert(ret == 0);
 
-    E2SM_MET_MeasurementInfoItem_t* meas_info_item8 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
-    meas_info_item8->buf = (uint8_t *)strdup("cqi");
-    meas_info_item8->size = strlen("cqi");
-    ret = ASN_SEQUENCE_ADD(&ind_header->measInfoList.list, meas_info_item8);
-    DevAssert(ret == 0);
+    // E2SM_MET_MeasurementInfoItem_t* meas_info_item6 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
+    // meas_info_item6->buf = (uint8_t *)strdup("snr");
+    // meas_info_item6->size = strlen("snr");
+    // ret = ASN_SEQUENCE_ADD(&ind_header->measInfoList.list, meas_info_item6);
+    // DevAssert(ret == 0);
+
+    // E2SM_MET_MeasurementInfoItem_t* meas_info_item7 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
+    // meas_info_item7->buf = (uint8_t *)strdup("rsrp");
+    // meas_info_item7->size = strlen("rsrp");
+    // ret = ASN_SEQUENCE_ADD(&ind_header->measInfoList.list, meas_info_item7);
+    // DevAssert(ret == 0);
+
+    // E2SM_MET_MeasurementInfoItem_t* meas_info_item8 = (E2SM_MET_MeasurementInfoItem_t*)calloc(1, sizeof(E2SM_MET_MeasurementInfoItem_t));
+    // meas_info_item8->buf = (uint8_t *)strdup("cqi");
+    // meas_info_item8->size = strlen("cqi");
+    // ret = ASN_SEQUENCE_ADD(&ind_header->measInfoList.list, meas_info_item8);
+    // DevAssert(ret == 0);
     
 
     // //debug

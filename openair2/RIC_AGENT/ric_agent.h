@@ -159,6 +159,13 @@ typedef struct {
 } kmp_meas_info_t;
 
 typedef struct {
+    long     meas_type_id;
+    char     *meas_type_name;
+    uint16_t meas_data;
+    bool     subscription_status;
+} met_meas_info_t;
+
+typedef struct {
     char *name;
     char *oid;
     int (*handle_subscription_add)(ric_agent_info_t *ric, ric_subscription_t *sub);

@@ -409,7 +409,7 @@ int e2ap_handle_ric_subscription_request(
         uint32_t *outlen)
 {
     int ret;
-    uint32_t      interval_sec = 10;
+    uint32_t      interval_sec = 2;
     uint32_t      interval_us = 0;
     uint32_t      interval_ms = 0;
     ric_ran_function_t *func = NULL;

@@ -450,24 +450,29 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
         for (i = 0; i < MAX_RECORD_ITEM ; i++)
         {
             g_indMsgMeasRecItemArr[i] = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
-            g_indMsgMeasRecItemArr[i]->present = E2SM_MET_MeasurementRecordItem_PR_integer;
+            // g_indMsgMeasRecItemArr[i]->present = E2SM_MET_MeasurementRecordItem_PR_string;
 
             switch(i)
             {
                 case 0:/*RRC.ConnEstabAtt.sum*/
-                    g_indMsgMeasRecItemArr[i]->choice.integer = 21;
+                    g_indMsgMeasRecItemArr[i]->buf  = (uint8_t *)strdup("AAA");
+                    g_indMsgMeasRecItemArr[i]->size = strlen("AAA");
                     break;
                 case 1:/*RRC.ConnEstabSucc.sum*/
-                    g_indMsgMeasRecItemArr[i]->choice.integer = 10; 
+                    g_indMsgMeasRecItemArr[i]->buf  = (uint8_t *)strdup("AAB");
+                    g_indMsgMeasRecItemArr[i]->size = strlen("AAA");
                     break;
                 case 2:/*RRC.ConnReEstabAtt.sum*/
-                    g_indMsgMeasRecItemArr[i]->choice.integer = 10;
+                    g_indMsgMeasRecItemArr[i]->buf  = (uint8_t *)strdup("AAC");
+                    g_indMsgMeasRecItemArr[i]->size = strlen("AAA");
                     break;
                 case 3:/*RRC.ConnMean*/
-                    g_indMsgMeasRecItemArr[i]->choice.integer = 10;
+                    g_indMsgMeasRecItemArr[i]->buf  = (uint8_t *)strdup("AAD");
+                    g_indMsgMeasRecItemArr[i]->size = strlen("AAA");
                     break;
                 case 4:/*RRC.ConnMax*/
-                    g_indMsgMeasRecItemArr[i]->choice.integer = 10;
+                    g_indMsgMeasRecItemArr[i]->buf  = (uint8_t *)strdup("AAE");
+                    g_indMsgMeasRecItemArr[i]->size = strlen("AAA");
                     break;
 
                 default:
@@ -547,7 +552,7 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
         for(i=0; i < MAX_RECORD_ITEM; i++)
         { 
             /* Meas Records meas_rec[]  have to be prepared for each Meas data item */
-            ret = ASN_SEQUENCE_ADD(&meas_rec[k]->measRecordItem.list, g_indMsgMeasRecItemArr[i]);
+            ret = ASN_SEQUENCE_ADD(&meas_rec[k]->measRecordItemList.list, g_indMsgMeasRecItemArr[i]);
             DevAssert(ret == 0);
         }
         
@@ -601,13 +606,13 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
                                     E2SM_MET_E2SM_MET_IndicationMessage__indicationMessage_formats_PR_indicationMessage_Format1;
     indicationmessage->indicationMessage_formats.choice.indicationMessage_Format1 = *format;
 
-    // E2SM_MET_E2SM_MET_IndicationMessage_t* tmp_ind = 
-    //                         (E2SM_MET_E2SM_MET_IndicationMessage_t*)calloc(1, sizeof(E2SM_MET_E2SM_MET_IndicationMessage_t));
+    E2SM_MET_E2SM_MET_IndicationMessage_t* tmp_ind = 
+                            (E2SM_MET_E2SM_MET_IndicationMessage_t*)calloc(1, sizeof(E2SM_MET_E2SM_MET_IndicationMessage_t));
 
-    // // encode_decode(&asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage,indicationmessage,tmp_ind);  
+    encode_decode(&asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage,indicationmessage,tmp_ind);  
 
-    // E2SM_MET_E2SM_MET_IndicationMessage_t* tmp_indicationmessage = 
-    //                         (E2SM_MET_E2SM_MET_IndicationMessage_t*)calloc(1, sizeof(E2SM_MET_E2SM_MET_IndicationMessage_t));
+    E2SM_MET_E2SM_MET_IndicationMessage_t* tmp_indicationmessage = 
+                            (E2SM_MET_E2SM_MET_IndicationMessage_t*)calloc(1, sizeof(E2SM_MET_E2SM_MET_IndicationMessage_t));
 
     // encode_decode(&asn_DEF_E2SM_MET_E2SM_MET_IndicationMessage,indicationmessage,tmp_indicationmessage);
 
@@ -693,10 +698,10 @@ void encode_e2sm_met_indication_header(ranid_t ranid, E2SM_MET_E2SM_MET_Indicati
     DevAssert(ret == 0);
     
 
-    //debug
-    E2SM_MET_E2SM_MET_IndicationHeader_t* tmp_ind_header =
-        (E2SM_MET_E2SM_MET_IndicationHeader_t*)calloc(1,sizeof(E2SM_MET_E2SM_MET_IndicationHeader_t));
-    encode_decode(&asn_DEF_E2SM_MET_E2SM_MET_IndicationHeader,ihead,tmp_ind_header);
+    // //debug
+    // E2SM_MET_E2SM_MET_IndicationHeader_t* tmp_ind_header =
+    //     (E2SM_MET_E2SM_MET_IndicationHeader_t*)calloc(1,sizeof(E2SM_MET_E2SM_MET_IndicationHeader_t));
+    // encode_decode(&asn_DEF_E2SM_MET_E2SM_MET_IndicationHeader,ihead,tmp_ind_header);
 
     //xer_fprint(stderr, &asn_DEF_E2SM_KPM_E2SM_KPMv2_IndicationHeader, ihead);
 }

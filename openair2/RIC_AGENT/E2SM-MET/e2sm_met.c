@@ -88,7 +88,7 @@ void encode_e2sm_met_indication_header(ranid_t ranid, E2SM_MET_E2SM_MET_Indicati
 E2SM_MET_GranularityPeriod_t     *g_granulPeriod;
 
 
-#define MAX_RECORD_ITEM 12  // here max recordItems is the same as THE FIXED number of the measurments we have 
+#define MAX_RECORD_ITEM 14  // here max recordItems is the same as THE FIXED number of the measurments we have 
 #define MAX_UE 5
 
 E2SM_MET_MeasurementRecordItem_t *g_indMsgMeasRecItemArr[MAX_RECORD_ITEM];
@@ -115,7 +115,9 @@ met_meas_info_t e2sm_met_meas_info[MAX_RECORD_ITEM] = {
                                             {9, "data-dl", 0, FALSE},
                                             {10, "data-dl", 0, FALSE},
                                             {11, "throughput", 0, FALSE},
-                                            {12, "snr", 0, FALSE}
+                                            {12, "snr", 0, FALSE},
+                                            {13, "amf_ue_ngap_id", 0, FALSE},
+                                            {14, "amf_ue_ngap_id", 0, FALSE}
                                         };
 
 //!SECTION
@@ -543,26 +545,157 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
     
     for (k=0; k < MAX_UE; k++)
     {
-        /*
-         * Measurement Record->MeasurementRecordItem (List)
-         */
-        meas_rec[k] = (E2SM_MET_MeasurementRecord_t *)calloc(1, sizeof(E2SM_MET_MeasurementRecord_t));
-        // meas_rec[k]->ueID = asn_int642INTEGER(meas_rec[k]->ueID,k);
-        // int ret1 = asn_uint642INTEGER(&meas_rec[k]->ueID,tmp_id);
-        meas_rec[k]->ueID = 11;
-        // meas_rec[k]->ueTag = "AAA";
-        // int ret22 = OCTET_STRING_fromString(&meas_rec[k]->ueTag,"ABC");
-        // E2SM_MET_UETag_t	*ueTag = (E2SM_MET_UETag_t *)calloc(1, sizeof(E2SM_MET_UETag_t));
-        // int ret22 = OCTET_STRING_fromString(ueTag,"AAAA");
-        meas_rec[k]->ueTag.buf  = (uint8_t *)strdup("AAA");
-        meas_rec[k]->ueTag.size = strlen("AAA");
 
-        for(i=0; i < MAX_RECORD_ITEM; i++)
-        { 
-            /* Meas Records meas_rec[]  have to be prepared for each Meas data item */
-            ret = ASN_SEQUENCE_ADD(&meas_rec[k]->measRecordItemList.list, g_indMsgMeasRecItemArr[i]);
-            DevAssert(ret == 0);
-        }
+        // fprintf(stderr, "\nbefore tmp_char=%s, strlen=%d", tmp_char, strlen(tmp_char));
+
+        E2SM_MET_MeasurementRecord_t *tmp_meas_rec = (E2SM_MET_MeasurementRecord_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecord_t));
+
+        tmp_meas_rec->ueID = 11;
+        tmp_meas_rec->ueTag.buf  = (uint8_t *)strdup("A");
+        tmp_meas_rec->ueTag.size = strlen("A");
+
+        // cqi 
+        E2SM_MET_MeasurementRecordItem_t *cqi = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+
+        char tmp_char[10];
+        ret = sprintf(tmp_char,"%d",99);
+        cqi->buf  = (uint8_t *)strdup(tmp_char);
+        cqi->size = strlen(tmp_char);
+
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, cqi);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+
+        // rsrp 
+
+        E2SM_MET_MeasurementRecordItem_t *rsrp = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        ret = sprintf(tmp_char,"%d",99);
+
+        rsrp->buf  = (uint8_t *)strdup(tmp_char);
+        rsrp->size = strlen(tmp_char);
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, rsrp);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+        // mcs-ul 
+
+        E2SM_MET_MeasurementRecordItem_t *mcsul = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        ret = sprintf(tmp_char,"%d",999);
+        mcsul->buf  = (uint8_t *)strdup(tmp_char);
+        mcsul->size = strlen(tmp_char);
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, mcsul);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+        // mcs-dl 
+
+        E2SM_MET_MeasurementRecordItem_t *mcsdl = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        ret = sprintf(tmp_char,"%d",99);
+        mcsdl->buf  = (uint8_t *)strdup(tmp_char);
+        mcsdl->size = strlen(tmp_char);
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, mcsdl);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+        // phr
+
+        E2SM_MET_MeasurementRecordItem_t *phr = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        ret = sprintf(tmp_char,"%d",55);
+        phr->buf  = (uint8_t *)strdup(tmp_char);
+        phr->size = strlen(tmp_char);
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, phr);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+        // bler-ul 
+
+        E2SM_MET_MeasurementRecordItem_t *bler_ul = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        ret = sprintf(tmp_char,"%d",55);
+        bler_ul->buf  = (uint8_t *)strdup(tmp_char);
+        bler_ul->size = strlen(tmp_char);
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, bler_ul);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+        //bler-dl 
+
+        E2SM_MET_MeasurementRecordItem_t *bler_dl = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        ret = sprintf(tmp_char,"%d",55);
+        bler_dl->buf  = (uint8_t *)strdup(tmp_char);
+        bler_dl->size = strlen(tmp_char);
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, bler_dl);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+        // errors-ul 
+        E2SM_MET_MeasurementRecordItem_t *err_ul = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        ret = sprintf(tmp_char,"%d",55);
+        err_ul->buf  = (uint8_t *)strdup(tmp_char);
+        err_ul->size = strlen(tmp_char);
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, err_ul);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+        // errors-dl 
+        E2SM_MET_MeasurementRecordItem_t *err_dl = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        ret = sprintf(tmp_char,"%d",55);
+        err_dl->buf  = (uint8_t *)strdup(tmp_char);
+        err_dl->size = strlen(tmp_char);
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, err_dl);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+        //data-dl
+        E2SM_MET_MeasurementRecordItem_t *data_dl = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        ret = sprintf(tmp_char,"%d",55);
+        data_dl->buf  = (uint8_t *)strdup(tmp_char);
+        data_dl->size = strlen(tmp_char);
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, data_dl);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+        //data-ul
+
+        E2SM_MET_MeasurementRecordItem_t *data_ul = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        ret = sprintf(tmp_char,"%d",55);
+        data_ul->buf  = (uint8_t *)strdup(tmp_char);
+        data_ul->size = strlen(tmp_char);
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, data_ul);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+        // throughput
+
+        E2SM_MET_MeasurementRecordItem_t *thp = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        ret = sprintf(tmp_char,"%d",55);
+        thp->buf  = (uint8_t *)strdup(tmp_char);
+        thp->size = strlen(tmp_char);
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, thp);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+        // snr
+
+        E2SM_MET_MeasurementRecordItem_t *snr = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        ret = sprintf(tmp_char,"%d",55);
+        snr->buf  = (uint8_t *)strdup(tmp_char);
+        snr->size = strlen(tmp_char);
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, snr);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+        // amf_ue_ngap_id
+
+        E2SM_MET_MeasurementRecordItem_t *amf_ue_ngap_id = (E2SM_MET_MeasurementRecordItem_t *)calloc(1,sizeof(E2SM_MET_MeasurementRecordItem_t));
+        ret = sprintf(tmp_char,"%d",55);
+        amf_ue_ngap_id->buf  = (uint8_t *)strdup(tmp_char);
+        amf_ue_ngap_id->size = strlen(tmp_char);
+        ret = ASN_SEQUENCE_ADD(&tmp_meas_rec->measRecordItemList.list, amf_ue_ngap_id);
+        DevAssert(ret == 0);
+        memset(tmp_char, 0, sizeof(tmp_char));
+
+
         
         //this section is commmented because unlike the original KPM asn1 def the MET does not use DataItem but the structure is 
             // directly Data -> Record -> RecordItem
@@ -572,9 +705,10 @@ encode_met_Indication_Msg(ric_agent_info_t* ric, ric_subscription_t *rs)
         // meas_data_item[k]->measRecord = *meas_rec[k];
 
         /* Enqueue Meas data items */
-        ret = ASN_SEQUENCE_ADD(&meas_data->list, meas_rec[k]);
+        ret = ASN_SEQUENCE_ADD(&meas_data->list, tmp_meas_rec);
         DevAssert(ret == 0);
     }
+    
 
    /*
     * measInfoList
